@@ -7,6 +7,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.*;
 
 class CustomerRepositoryTest {
@@ -47,5 +49,20 @@ class CustomerRepositoryTest {
 
         assertThat(answer).isEqualTo(expected);
         assertThat(answer.getId()).isEqualTo(expected.getId());
+    }
+
+    @Test
+    @DisplayName("Find by username")
+    void findByUsername() {
+        Customer joe = CustomerUtil.joe();
+        Customer jack = CustomerUtil.jack();
+        Customer bobby = CustomerUtil.bobby();
+        repository.save(joe);
+        repository.save(jack);
+        repository.save(bobby);
+
+        Optional<Customer> answer = repository.findByUsername(bobby.getUsername());
+
+        assertThat(answer).contains(bobby);
     }
 }

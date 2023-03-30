@@ -31,14 +31,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ItemControllerIntegrationTest {
     @Autowired
     private ItemRepository repository;
-    @Autowired
-    private ItemMapper mapper;
-    @Autowired
-    private ItemService service;
-    @Autowired
-    private ItemController controller;
-    @Autowired
-    private Validator validator;
 
 
     @LocalServerPort
