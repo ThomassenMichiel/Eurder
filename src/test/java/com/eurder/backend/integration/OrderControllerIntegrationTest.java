@@ -4,6 +4,8 @@ import com.eurder.backend.controller.OrderController;
 import com.eurder.backend.domain.ItemGroup;
 import com.eurder.backend.dto.reponse.CreatedObjectIdDto;
 import com.eurder.backend.dto.reponse.CreatedOrderDto;
+import com.eurder.backend.dto.reponse.OrderDto;
+import com.eurder.backend.dto.reponse.OrderListDto;
 import com.eurder.backend.dto.request.CreateItemGroupDto;
 import com.eurder.backend.dto.request.CreateOrderDto;
 import com.eurder.backend.exception.ApiError;
@@ -35,6 +37,8 @@ import org.springframework.validation.beanvalidation.MethodValidationPostProcess
 import java.time.LocalDate;
 import java.util.List;
 
+import static com.eurder.backend.util.CustomerUtil.jack;
+import static com.eurder.backend.util.CustomerUtil.joe;
 import static com.eurder.backend.util.OrderUtil.*;
 import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -164,12 +168,45 @@ class OrderControllerIntegrationTest {
         assertThat(answer.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.getReasonPhrase());
     }
 
+    @Test
+    @DisplayName("Find all orders for a user")
+    void findAllUser() {
+        OrderDto firstOrderDto = toDto(firstOrder(1L));
+        OrderDto secondOrderDto = toDto(secondOrder(2L));
+        post(createOrderDto(firstOrder()));
+        post(createOrderDto(secondOrder()));
+        post(createOrderDto(thirdOrder()), jack().getEmail(), jack().getPassword());
+        post(createOrderDto(fourthOrder()), jack().getEmail(), jack().getPassword());
+
+        OrderListDto expected = new OrderListDto(List.of(firstOrderDto, secondOrderDto), firstOrder().getPrice().add(secondOrder().getPrice()).doubleValue());
+
+        OrderListDto answer = RestAssured.given()
+                .contentType(JSON)
+                .auth()
+                .preemptive()
+                .basic(joe().getEmail(), joe().getPassword())
+                .when()
+                .port(port)
+                .get(host)
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .as(OrderListDto.class);
+
+        assertThat(answer).isEqualTo(expected);
+
+    }
+
     private ValidatableResponse post(CreateOrderDto order) {
+        return post(order, CustomerUtil.joe(1L).getEmail(), CustomerUtil.joe(1L).getPassword());
+    }
+
+    private ValidatableResponse post(CreateOrderDto order, String id, String email) {
         return RestAssured.given()
                 .contentType(JSON)
                 .auth()
                 .preemptive()
-                .basic(CustomerUtil.joe(1L).getEmail(), CustomerUtil.joe(1L).getPassword())
+                .basic(id, email)
                 .body(order)
                 .when()
                 .port(port)

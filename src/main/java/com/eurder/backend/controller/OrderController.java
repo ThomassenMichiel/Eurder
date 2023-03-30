@@ -1,6 +1,7 @@
 package com.eurder.backend.controller;
 
 import com.eurder.backend.dto.reponse.CreatedOrderDto;
+import com.eurder.backend.dto.reponse.OrderListDto;
 import com.eurder.backend.dto.request.CreateOrderDto;
 import com.eurder.backend.service.OrderService;
 import jakarta.validation.Valid;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
 
 @RestController
 @RequestMapping("/orders")
@@ -27,5 +29,11 @@ public class OrderController {
         CreatedOrderDto createdOrderDto = service.save(createOrderDto);
         return ResponseEntity.created(createdOrderDto.getLocation())
                 .body(createdOrderDto);
+    }
+
+    @GetMapping
+    @ResponseStatus(OK)
+    public ResponseEntity<OrderListDto> findAll() {
+        return ResponseEntity.ok(service.findAll());
     }
 }
