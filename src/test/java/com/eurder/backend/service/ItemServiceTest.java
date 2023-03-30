@@ -2,6 +2,7 @@ package com.eurder.backend.service;
 
 import com.eurder.backend.domain.Item;
 import com.eurder.backend.dto.request.CreateItemDto;
+import com.eurder.backend.dto.request.UpdateItemDto;
 import com.eurder.backend.exception.ItemNotFoundException;
 import com.eurder.backend.mapper.ItemMapper;
 import com.eurder.backend.repository.ItemRepository;
@@ -18,8 +19,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ItemServiceTest {
@@ -69,5 +69,17 @@ class ItemServiceTest {
         assertThatThrownBy(() -> service.findById(10L))
                 .hasMessage(exception.getMessage())
                 .isInstanceOf(exception.getClass());
+    }
+
+    @Test
+    @DisplayName("Update an item")
+    void update() {
+        Item item = ItemUtil.orange(1L);
+        UpdateItemDto updateItemDto = ItemUtil.updateItemDto(item);
+        when(mapper.toDomain(updateItemDto)).thenReturn(item);
+
+        service.update(updateItemDto);
+
+        verify(repository, times(1)).save(item);
     }
 }

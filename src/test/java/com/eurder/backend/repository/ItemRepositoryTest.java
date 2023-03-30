@@ -32,12 +32,12 @@ class ItemRepositoryTest {
     @Test
     @DisplayName("Save Items given already existing Items")
     void saveItem_givenAlreadyExistingItems() {
-        Item Item1 = ItemUtil.apple();
-        Item Item2 = ItemUtil.orange();
-        Item Item3 = ItemUtil.strawberry();
-        repository.save(Item1);
-        repository.save(Item2);
-        repository.save(Item3);
+        Item item1 = ItemUtil.apple();
+        Item item2 = ItemUtil.orange();
+        Item item3 = ItemUtil.strawberry();
+        repository.save(item1);
+        repository.save(item2);
+        repository.save(item3);
 
         Item given = ItemUtil.banana();
         Item expected = ItemUtil.banana(4L);

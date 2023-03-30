@@ -12,7 +12,11 @@ public non-sealed class ItemRepository extends AbstractCrud<Item, Long> {
 
     @Override
     public Item save(Item item) {
-        Item itemWithNewId = new Item(idCounter.getAndIncrement(), item.getName(), item.getDescription(), item.getPrice(), item.getAmount());
+        Long id = item.getId();
+        if (item.getId() == null) {
+            id = idCounter.getAndIncrement();
+        }
+        Item itemWithNewId = new Item(id, item.getName(), item.getDescription(), item.getPrice(), item.getAmount());
         this.repository.put(itemWithNewId.getId(), itemWithNewId);
         return itemWithNewId;
     }

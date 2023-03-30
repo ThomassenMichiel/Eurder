@@ -28,7 +28,7 @@ public class Order {
     }
 
     public BigDecimal getPrice() {
-        return itemGroups.stream().map(ItemGroup::getPrice).reduce(BigDecimal.ONE, BigDecimal::add);
+        return itemGroups.stream().map(ItemGroup::getPrice).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     public Customer getCustomer() {

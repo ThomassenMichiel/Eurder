@@ -6,6 +6,7 @@ import com.eurder.backend.dto.reponse.CreatedOrderDto;
 import com.eurder.backend.dto.request.CreateOrderDto;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.net.URI;
 import java.util.List;
 
@@ -23,6 +24,8 @@ public class OrderMapper {
     }
 
     public CreatedOrderDto toDto(Order order) {
+        BigDecimal price = order.getPrice();
+        double v = price.doubleValue();
         return new CreatedOrderDto(order.getId(), URI.create("/orders/" + order.getId()), order.getPrice().doubleValue());
     }
 }

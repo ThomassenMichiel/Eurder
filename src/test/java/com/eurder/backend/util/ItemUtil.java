@@ -2,8 +2,12 @@ package com.eurder.backend.util;
 
 import com.eurder.backend.domain.Item;
 import com.eurder.backend.dto.request.CreateItemDto;
+import com.eurder.backend.dto.request.UpdateItemDto;
 
 import java.math.BigDecimal;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public final class ItemUtil {
     public static Item apple() {
@@ -40,5 +44,12 @@ public final class ItemUtil {
 
     public static CreateItemDto createItemDto(Item item) {
         return new CreateItemDto(item.getName(), item.getDescription(), item.getPrice().doubleValue(), item.getAmount());
+    }
+
+    public static UpdateItemDto updateItemDto(Item item) {
+        if (item.getId() == null || item.getId() < 0) {
+            fail("UpdateItemDto has no ID provided or is smaller than 0");
+        }
+        return new UpdateItemDto(item.getId(), item.getName(), item.getDescription(), item.getPrice().doubleValue(), item.getAmount());
     }
 }

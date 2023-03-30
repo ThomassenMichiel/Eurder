@@ -1,6 +1,7 @@
 package com.eurder.backend.service;
 
 import com.eurder.backend.domain.Item;
+import com.eurder.backend.dto.request.UpdateItemDto;
 import com.eurder.backend.dto.request.CreateItemDto;
 import com.eurder.backend.exception.ItemNotFoundException;
 import com.eurder.backend.mapper.ItemMapper;
@@ -26,5 +27,9 @@ public class ItemService {
     public Item findById(Long itemId) {
         return repository.findById(itemId)
                 .orElseThrow(ItemNotFoundException::new);
+    }
+
+    public void update(UpdateItemDto updateItemDto) {
+        repository.save(mapper.toDomain(updateItemDto));
     }
 }
