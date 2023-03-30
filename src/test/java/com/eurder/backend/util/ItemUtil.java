@@ -19,7 +19,7 @@ public final class ItemUtil {
     }
 
     public static Item orange(Long id) {
-        return new Item(id, "Apple", "It's orange", BigDecimal.valueOf(6.66d), 9);
+        return new Item(id, "Orange", "It's orange", BigDecimal.valueOf(6.66d), 9);
     }
 
     public static Item banana() {
@@ -27,7 +27,7 @@ public final class ItemUtil {
     }
 
     public static Item banana(Long id) {
-        return new Item(id, "Apple", "It's banana", BigDecimal.valueOf(4.20d), 15);
+        return new Item(id, "Banana", "It's banana", BigDecimal.valueOf(4.20d), 0);
     }
 
     public static Item strawberry() {
@@ -35,7 +35,7 @@ public final class ItemUtil {
     }
 
     public static Item strawberry(Long id) {
-        return new Item(id, "Apple", "It's red", BigDecimal.valueOf(6.9d), 6);
+        return new Item(id, "Strawberry", "It's red", BigDecimal.valueOf(6.9d), 6);
     }
 
     public static CreateItemDto createItemDto(Item item) {

@@ -24,7 +24,7 @@ public class OrderService {
         savedOrder.setCustomer(customerService.getCurrentUser());
 
         savedOrder.getItemGroups().forEach(itemGroup -> {
-            if (itemGroup.getAmount() >= 0) {
+            if (itemGroup.getItem().getAmount() - itemGroup.getAmount() <= 0) {
                 itemGroup.calculateShippingDate();
             }
             itemGroup.getItem().decreaseBy(itemGroup.getAmount());

@@ -1,6 +1,7 @@
 package com.eurder.backend.integration;
 
 import com.eurder.backend.controller.OrderController;
+import com.eurder.backend.domain.ItemGroup;
 import com.eurder.backend.dto.reponse.CreatedObjectIdDto;
 import com.eurder.backend.dto.reponse.CreatedOrderDto;
 import com.eurder.backend.dto.request.CreateItemGroupDto;
@@ -31,6 +32,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.validation.Validator;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static com.eurder.backend.util.OrderUtil.*;
@@ -67,7 +69,7 @@ class OrderControllerIntegrationTest {
         host = "http://localhost:" + port + "/orders";
         itemService.save(ItemUtil.createItemDto(ItemUtil.apple(1L)));
         itemService.save(ItemUtil.createItemDto(ItemUtil.banana(2L)));
-        itemService.save(ItemUtil.createItemDto(ItemUtil.apple(3L)));
+        itemService.save(ItemUtil.createItemDto(ItemUtil.strawberry(3L)));
         itemService.save(ItemUtil.createItemDto(ItemUtil.orange(4L)));
 
 
@@ -83,7 +85,6 @@ class OrderControllerIntegrationTest {
         assertThat(repository.findAll()).isEmpty();
 
 
-
         CreatedOrderDto answer = post(createOrderDto(firstOrder()))
                 .statusCode(HttpStatus.CREATED.value())
                 .extract()
@@ -93,12 +94,16 @@ class OrderControllerIntegrationTest {
         assertThat(answer.getId()).isEqualTo(repository.findAll().size());
         assertThat(answer.getLocation().getRawPath()).isEqualTo("/orders/1");
         assertThat(answer.getPrice()).isEqualTo(firstOrder().getPrice().doubleValue());
+
+        assertThat(itemService.findById(1L).getAmount()).isEqualTo(9);
+        for (ItemGroup itemGroup : repository.findById(answer.getId()).get().getItemGroups()) {
+            assertThat(itemGroup.getShippingDate()).isEqualTo(LocalDate.now().plusDays(1));
+        }
     }
 
     @Test
     @DisplayName("Save multiple orders")
     void postMultipleOrders() {
-
         post(createOrderDto(firstOrder()));
         post(createOrderDto(secondOrder()));
         post(createOrderDto(thirdOrder()));
@@ -112,6 +117,15 @@ class OrderControllerIntegrationTest {
         assertThat(answer.getId()).isEqualTo(repository.findAll().size());
         assertThat(answer.getLocation().getRawPath()).isEqualTo("/orders/" + repository.findAll().size());
         assertThat(answer.getPrice()).isEqualTo(fourthOrder().getPrice().doubleValue());
+
+        assertThat(itemService.findById(1L).getAmount()).isEqualTo(9);
+        assertThat(itemService.findById(2L).getAmount()).isEqualTo(-20);
+        assertThat(itemService.findById(3L).getAmount()).isEqualTo(6);
+        assertThat(itemService.findById(4L).getAmount()).isEqualTo(9);
+
+        for (ItemGroup itemGroup : repository.findById(2L).get().getItemGroups()) {
+            assertThat(itemGroup.getShippingDate()).isEqualTo(LocalDate.now().plusDays(7));
+        }
     }
 
     @Test

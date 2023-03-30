@@ -6,7 +6,7 @@ import com.eurder.backend.dto.request.CreateItemDto;
 import com.eurder.backend.dto.request.CreateItemGroupDto;
 import com.eurder.backend.dto.request.CreateOrderDto;
 
-import java.time.LocalDate;
+
 import java.util.List;
 
 public final class OrderUtil {
@@ -15,7 +15,7 @@ public final class OrderUtil {
     }
 
     public static Order firstOrder(Long id) {
-        ItemGroup itemGroup = new ItemGroup(ItemUtil.apple(1L), 1, LocalDate.now().plusDays(1));
+        ItemGroup itemGroup = new ItemGroup(ItemUtil.apple(1L), 1);
         return new Order(id, List.of(itemGroup), CustomerUtil.bobby(1L));
     }
 
@@ -24,7 +24,7 @@ public final class OrderUtil {
     }
 
     public static Order secondOrder(Long id) {
-        ItemGroup itemGroup = new ItemGroup(ItemUtil.banana(2L), 15, LocalDate.now().plusDays(1));
+        ItemGroup itemGroup = new ItemGroup(ItemUtil.banana(2L), 20);
         return new Order(id, List.of(itemGroup), CustomerUtil.jack(2L));
     }
 
@@ -33,7 +33,7 @@ public final class OrderUtil {
     }
 
     public static Order thirdOrder(Long id) {
-        ItemGroup itemGroup = new ItemGroup(ItemUtil.strawberry(3L), 0, LocalDate.now().plusDays(7));
+        ItemGroup itemGroup = new ItemGroup(ItemUtil.strawberry(3L), 0);
         return new Order(id, List.of(itemGroup), CustomerUtil.john(3L));
     }
 
@@ -42,7 +42,7 @@ public final class OrderUtil {
     }
 
     public static Order fourthOrder(Long id) {
-        ItemGroup itemGroup = new ItemGroup(ItemUtil.orange(4L), 0, LocalDate.now().plusDays(7));
+        ItemGroup itemGroup = new ItemGroup(ItemUtil.orange(4L), 0);
         return new Order(id, List.of(itemGroup), CustomerUtil.joe(4L));
     }
 

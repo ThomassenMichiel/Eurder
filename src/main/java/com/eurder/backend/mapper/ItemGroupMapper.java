@@ -6,8 +6,6 @@ import com.eurder.backend.dto.request.CreateItemGroupDto;
 import com.eurder.backend.service.ItemService;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
-
 @Component
 public class ItemGroupMapper {
     private final ItemService itemService;
@@ -18,6 +16,6 @@ public class ItemGroupMapper {
 
     public ItemGroup toDomain(CreateItemGroupDto createItemGroupDto) {
         Item item = itemService.findById(createItemGroupDto.getItemId());
-        return new ItemGroup(item, createItemGroupDto.getAmount(), LocalDate.now().plusDays(1));
+        return new ItemGroup(item, createItemGroupDto.getAmount());
     }
 }

@@ -11,10 +11,10 @@ public class ItemGroup {
     private final int amount;
     private LocalDate shippingDate;
 
-    public ItemGroup(Item item, int amount, LocalDate shippingDate) {
+    public ItemGroup(Item item, int amount) {
         this.item = item;
         this.amount = amount;
-        this.shippingDate = shippingDate;
+        calculateShippingDate();
     }
 
     public Item getItem() {
@@ -35,7 +35,7 @@ public class ItemGroup {
 
     public void calculateShippingDate() {
         int daysToAdd = STANDARD_SHIPPING;
-        if (amount <= 0) {
+        if ((item.getAmount() - amount) <= 0) {
             daysToAdd = OUT_OF_STOCK_SHIPPING;
         }
         shippingDate = LocalDate.now().plusDays(daysToAdd);
