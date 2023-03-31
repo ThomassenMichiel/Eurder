@@ -1,6 +1,7 @@
 package com.eurder.backend.integration;
 
 import com.eurder.backend.controller.OrderController;
+import com.eurder.backend.domain.Item;
 import com.eurder.backend.domain.ItemGroup;
 import com.eurder.backend.dto.reponse.CreatedObjectIdDto;
 import com.eurder.backend.dto.reponse.CreatedOrderDto;
@@ -8,6 +9,7 @@ import com.eurder.backend.dto.reponse.OrderDto;
 import com.eurder.backend.dto.reponse.OrderListDto;
 import com.eurder.backend.dto.request.CreateItemGroupDto;
 import com.eurder.backend.dto.request.CreateOrderDto;
+import com.eurder.backend.dto.request.UpdateItemDto;
 import com.eurder.backend.exception.ApiError;
 import com.eurder.backend.mapper.OrderMapper;
 import com.eurder.backend.repository.OrderRepository;
@@ -34,6 +36,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.validation.Validator;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -170,7 +173,7 @@ class OrderControllerIntegrationTest {
 
     @Test
     @DisplayName("Find all orders for a user")
-    void findAllUser() {
+    void findAllOrdersForCurrentUser() {
         OrderDto firstOrderDto = toDto(firstOrder(1L));
         OrderDto secondOrderDto = toDto(secondOrder(2L));
         post(createOrderDto(firstOrder()));
@@ -195,6 +198,48 @@ class OrderControllerIntegrationTest {
 
         assertThat(answer).isEqualTo(expected);
 
+    }
+
+    @Test
+    @DisplayName("Find all orders for a user - prices of previous orders should not change")
+    void findAllOrdersForCurrentUser_pricesOfPreviousOrdersShouldNotChange() {
+        OrderDto firstOrderDto = toDto(firstOrder(1L));
+        OrderDto secondOrderDto = toDto(secondOrder(2L));
+        post(createOrderDto(firstOrder()));
+        post(createOrderDto(secondOrder()));
+        post(createOrderDto(thirdOrder()), jack().getEmail(), jack().getPassword());
+        post(createOrderDto(fourthOrder()), jack().getEmail(), jack().getPassword());
+
+        Item item = new Item(1L, "Potato", "This is a potato", BigDecimal.valueOf(1337), 200);
+        UpdateItemDto updateItemDto = new UpdateItemDto(item.getId(), item.getName(), item.getDescription(), item.getPrice().doubleValue(), item.getAmount());
+
+        RestAssured.given()
+                .auth()
+                .basic("admin", "admin")
+                .contentType(JSON)
+                .body(updateItemDto)
+                .when()
+                .port(port)
+                .put("http://localhost:" + port + "/items")
+                .then()
+                .statusCode(HttpStatus.OK.value());
+
+        OrderListDto expected = new OrderListDto(List.of(firstOrderDto, secondOrderDto), firstOrder().getPrice().add(secondOrder().getPrice()).doubleValue());
+
+        OrderListDto answer = RestAssured.given()
+                .contentType(JSON)
+                .auth()
+                .preemptive()
+                .basic(joe().getEmail(), joe().getPassword())
+                .when()
+                .port(port)
+                .get(host)
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .as(OrderListDto.class);
+
+        assertThat(answer).isEqualTo(expected);
     }
 
     private ValidatableResponse post(CreateOrderDto order) {

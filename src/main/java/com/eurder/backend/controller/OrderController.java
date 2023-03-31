@@ -6,10 +6,7 @@ import com.eurder.backend.dto.request.CreateOrderDto;
 import com.eurder.backend.service.OrderService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
-
-import java.net.URI;
 
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
