@@ -2,8 +2,8 @@ package com.eurder.backend.exception;
 
 import org.springframework.http.HttpStatus;
 
-public class ItemNotFoundException extends CustomException {
+public class ItemNotFoundException extends NotFoundException {
     public ItemNotFoundException() {
-        super(HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.getReasonPhrase(), "Item not found");
+        super("Item not found", "Item not found");
     }
 }

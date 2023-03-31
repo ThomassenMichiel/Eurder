@@ -2,8 +2,8 @@ package com.eurder.backend.exception;
 
 import org.springframework.http.HttpStatus;
 
-public class CustomerNotFoundException extends CustomException {
+public class CustomerNotFoundException extends NotFoundException {
     public CustomerNotFoundException() {
-        super(HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.getReasonPhrase(), "Customer not found");
+        super("Customer not found", "Customer not found");
     }
 }

@@ -23,7 +23,7 @@ public class OrderMapper {
         return new Order(list);
     }
 
-    public CreatedOrderDto toCreateOrderDto(Order order) {
+    public CreatedOrderDto toCreatedOrderDto(Order order) {
         return new CreatedOrderDto(order.getId(), URI.create("/orders/" + order.getId()), order.getPrice().doubleValue());
     }
 

@@ -1,15 +1,12 @@
 package com.eurder.backend.integration;
 
-import com.eurder.backend.controller.CustomerController;
 import com.eurder.backend.domain.Customer;
 import com.eurder.backend.dto.reponse.CreatedObjectIdDto;
 import com.eurder.backend.dto.reponse.CustomerDto;
 import com.eurder.backend.dto.reponse.CustomerListDto;
 import com.eurder.backend.dto.request.CreateCustomerDto;
 import com.eurder.backend.exception.ApiError;
-import com.eurder.backend.mapper.CustomerMapper;
 import com.eurder.backend.repository.CustomerRepository;
-import com.eurder.backend.service.CustomerService;
 import io.restassured.RestAssured;
 import io.restassured.response.ValidatableResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +19,6 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.validation.Validator;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
 
 import static com.eurder.backend.util.CustomerUtil.*;
@@ -34,14 +30,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 class CustomerControllerIntegrationTest {
     @Autowired
     private CustomerRepository repository;
-    @Autowired
-    private CustomerMapper mapper;
-    @Autowired
-    private CustomerService service;
-    @Autowired
-    private CustomerController controller;
-    @Autowired
-    private Validator validator;
 
     @LocalServerPort
     private int port;
@@ -165,7 +153,7 @@ class CustomerControllerIntegrationTest {
                 .given()
                 .auth()
                 .preemptive()
-                .basic("admin","admin")
+                .basic("admin", "admin")
                 .when()
                 .port(port)
                 .get(host + "/" + id)
@@ -190,7 +178,6 @@ class CustomerControllerIntegrationTest {
                 .assertThat()
                 .contentType(JSON)
                 .statusCode(HttpStatus.OK.value())
-                .log().all()
                 .extract()
                 .as(CustomerListDto.class);
     }

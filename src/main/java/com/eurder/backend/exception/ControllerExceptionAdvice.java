@@ -27,7 +27,7 @@ public class ControllerExceptionAdvice extends ResponseEntityExceptionHandler {
         }
 
         return new ResponseEntity<>(
-                new ApiError(ex.getTitle(), ex.getMessage(), ex.getStatus().getReasonPhrase(), ex.getStatus().value()),
+                new ApiError(ex.getTitle(), ex.getMessage(), ex.getStatus().name(), ex.getStatus().value()),
                 ex.getStatus()
         );
     }

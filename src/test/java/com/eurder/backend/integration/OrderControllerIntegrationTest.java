@@ -1,9 +1,7 @@
 package com.eurder.backend.integration;
 
-import com.eurder.backend.controller.OrderController;
 import com.eurder.backend.domain.Item;
 import com.eurder.backend.domain.ItemGroup;
-import com.eurder.backend.dto.reponse.CreatedObjectIdDto;
 import com.eurder.backend.dto.reponse.CreatedOrderDto;
 import com.eurder.backend.dto.reponse.OrderDto;
 import com.eurder.backend.dto.reponse.OrderListDto;
@@ -11,17 +9,16 @@ import com.eurder.backend.dto.request.CreateItemGroupDto;
 import com.eurder.backend.dto.request.CreateOrderDto;
 import com.eurder.backend.dto.request.UpdateItemDto;
 import com.eurder.backend.exception.ApiError;
-import com.eurder.backend.mapper.OrderMapper;
+import com.eurder.backend.exception.ForbiddenException;
+import com.eurder.backend.exception.ItemNotFoundException;
+import com.eurder.backend.exception.OrderNotFoundException;
 import com.eurder.backend.repository.OrderRepository;
 import com.eurder.backend.service.CustomerService;
 import com.eurder.backend.service.ItemService;
-import com.eurder.backend.service.OrderService;
-import com.eurder.backend.service.UserService;
 import com.eurder.backend.util.CustomerUtil;
 import com.eurder.backend.util.ItemUtil;
 import io.restassured.RestAssured;
 import io.restassured.response.ValidatableResponse;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,12 +28,11 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.validation.Validator;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
 
 import java.math.BigDecimal;
+import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -51,16 +47,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 class OrderControllerIntegrationTest {
     @Autowired
     private OrderRepository repository;
-    @Autowired
-    private OrderMapper mapper;
-    @Autowired
-    private OrderService service;
-    @Autowired
-    private OrderController controller;
-    @Autowired
-    private Validator validator;
-    @Autowired
-    private UserService userService;
     @Autowired
     private ItemService itemService;
     @Autowired
@@ -167,8 +153,8 @@ class OrderControllerIntegrationTest {
         assertThat(answer).isNotNull();
         assertThat(answer.getCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
         assertThat(answer.getMessage()).isEqualTo("Item not found");
-        assertThat(answer.getTitle()).isEqualTo("Not Found");
-        assertThat(answer.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.getReasonPhrase());
+        assertThat(answer.getTitle()).isEqualTo("Item not found");
+        assertThat(answer.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.name());
     }
 
     @Test
@@ -240,6 +226,113 @@ class OrderControllerIntegrationTest {
                 .as(OrderListDto.class);
 
         assertThat(answer).isEqualTo(expected);
+    }
+
+    @Test
+    @DisplayName("Reorder a previously made order")
+    void reorder() {
+        CreatedOrderDto createdOrderDto = post(createOrderDto(firstOrder()))
+                .statusCode(HttpStatus.CREATED.value())
+                .extract()
+                .as(CreatedOrderDto.class);
+
+        CreatedOrderDto answer = RestAssured
+                .given()
+                .port(port)
+                .auth()
+                .preemptive()
+                .basic(joe().getEmail(), joe().getPassword())
+                .when()
+                .port(port)
+                .post(host + "/reorder/" + createdOrderDto.getId())
+                .then()
+                .statusCode(HttpStatus.CREATED.value())
+                .extract()
+                .as(CreatedOrderDto.class);
+
+        assertThat(answer).isEqualTo(new CreatedOrderDto(2L, URI.create("/orders/2"), createdOrderDto.getPrice()));
+    }
+
+    @Test
+    @DisplayName("Reorder a previously made order with different pricing")
+    void reorder_withDifferentPricing() {
+        CreatedOrderDto createdOrderDto = post(createOrderDto(firstOrder()))
+                .statusCode(HttpStatus.CREATED.value())
+                .extract()
+                .as(CreatedOrderDto.class);
+
+        Item item = new Item(1L, "Potato", "This is a potato", BigDecimal.valueOf(1337), 200);
+        UpdateItemDto updateItemDto = new UpdateItemDto(item.getId(), item.getName(), item.getDescription(), item.getPrice().doubleValue(), item.getAmount());
+
+        RestAssured.given()
+                .auth()
+                .basic("admin", "admin")
+                .contentType(JSON)
+                .body(updateItemDto)
+                .when()
+                .port(port)
+                .put("http://localhost:" + port + "/items")
+                .then()
+                .statusCode(HttpStatus.OK.value());
+
+        CreatedOrderDto answer = RestAssured
+                .given()
+                .port(port)
+                .auth()
+                .preemptive()
+                .basic(joe().getEmail(), joe().getPassword())
+                .when()
+                .port(port)
+                .post(host + "/reorder/" + createdOrderDto.getId())
+                .then()
+                .statusCode(HttpStatus.CREATED.value())
+                .extract()
+                .as(CreatedOrderDto.class);
+
+        assertThat(answer).isEqualTo(new CreatedOrderDto(2L, URI.create("/orders/2"), updateItemDto.getPrice()));
+    }
+
+    @Test
+    @DisplayName("Reorder a previously made order as different user")
+    void reorder_asDifferentUser() {
+        CreatedOrderDto createdOrderDto = post(createOrderDto(firstOrder()))
+                .statusCode(HttpStatus.CREATED.value())
+                .extract()
+                .as(CreatedOrderDto.class);
+
+        RestAssured
+                .given()
+                .port(port)
+                .auth()
+                .preemptive()
+                .basic(jack().getEmail(), jack().getPassword())
+                .when()
+                .port(port)
+                .post(host + "/reorder/" + createdOrderDto.getId())
+                .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .extract()
+                .as(ForbiddenException.class);
+
+    }
+
+    @Test
+    @DisplayName("Reorder order not found")
+    void reorder_orderNotFound() {
+        RestAssured
+                .given()
+                .port(port)
+                .auth()
+                .preemptive()
+                .basic(jack().getEmail(), jack().getPassword())
+                .when()
+                .port(port)
+                .post(host + "/reorder/" + 5_000_000_000L)
+                .then()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .extract()
+                .as(OrderNotFoundException.class);
+
     }
 
     private ValidatableResponse post(CreateOrderDto order) {

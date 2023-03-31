@@ -17,11 +17,6 @@ public abstract sealed class AbstractCrud<T, S> implements CRUD<T, S> permits Cu
     }
 
     @Override
-    public T remove(S s) {
-        return repository.remove(s);
-    }
-
-    @Override
     public List<T> findAll() {
         return repository.values().stream().toList();
     }
