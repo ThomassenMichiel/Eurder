@@ -28,6 +28,6 @@ public class OrderMapper {
     }
 
     public OrderDto toDto(Order order) {
-        return new OrderDto(order.getId(), order.getItemGroups().stream().map(itemGroupMapper::toDto).toList());
+        return new OrderDto(order.getId(), order.getItemGroups().stream().map(itemGroupMapper::toDto).toList(), order.getPrice().doubleValue());
     }
 }

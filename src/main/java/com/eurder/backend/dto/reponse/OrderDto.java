@@ -6,13 +6,15 @@ import java.util.Objects;
 public class OrderDto {
     private Long id;
     private List<ItemGroupDto> itemGroups;
+    private double price;
 
     public OrderDto() {
     }
 
-    public OrderDto(Long id, List<ItemGroupDto> itemGroups) {
+    public OrderDto(Long id, List<ItemGroupDto> itemGroups, double price) {
         this.id = id;
         this.itemGroups = itemGroups;
+        this.price = price;
     }
 
     public Long getId() {
@@ -21,6 +23,10 @@ public class OrderDto {
 
     public List<ItemGroupDto> getItemGroups() {
         return itemGroups;
+    }
+
+    public double getPrice() {
+        return price;
     }
 
     @Override

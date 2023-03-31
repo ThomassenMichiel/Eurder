@@ -4,7 +4,6 @@ import com.eurder.backend.domain.ItemGroup;
 import com.eurder.backend.domain.Order;
 import com.eurder.backend.dto.reponse.ItemGroupDto;
 import com.eurder.backend.dto.reponse.OrderDto;
-import com.eurder.backend.dto.request.CreateItemDto;
 import com.eurder.backend.dto.request.CreateItemGroupDto;
 import com.eurder.backend.dto.request.CreateOrderDto;
 
@@ -54,6 +53,6 @@ public final class OrderUtil {
     }
 
     public static OrderDto toDto(Order order) {
-        return new OrderDto(order.getId(), order.getItemGroups().stream().map(itemGroup -> new ItemGroupDto(itemGroup.getItem().getName(), itemGroup.getAmount(), itemGroup.getPrice().doubleValue())).toList());
+        return new OrderDto(order.getId(), order.getItemGroups().stream().map(itemGroup -> new ItemGroupDto(itemGroup.getItem().getName(), itemGroup.getAmount(), itemGroup.getPrice().doubleValue())).toList(), order.getPrice().doubleValue());
     }
 }
