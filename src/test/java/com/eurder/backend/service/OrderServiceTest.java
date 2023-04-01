@@ -1,7 +1,6 @@
 package com.eurder.backend.service;
 
 import com.eurder.backend.domain.Customer;
-import com.eurder.backend.domain.ItemToShip;
 import com.eurder.backend.domain.Order;
 import com.eurder.backend.dto.reponse.*;
 import com.eurder.backend.dto.request.CreateOrderDto;
@@ -98,7 +97,6 @@ class OrderServiceTest {
     @DisplayName("Reorder a previous order - order not found")
     void reorder_orderNotFound() {
         Long id = 1L;
-        CreatedOrderDto createdOrderDto = new CreatedOrderDto(1L, URI.create("/orders/" + id), firstOrder().getPrice().doubleValue());
         when(repository.findById(id)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.reorder(1L))
@@ -116,7 +114,6 @@ class OrderServiceTest {
     @DisplayName("Reorder a previous order - unauthorized")
     void reorder_unauthorized() {
         Long id = 1L;
-        CreatedOrderDto createdOrderDto = new CreatedOrderDto(1L, URI.create("/orders/" + id), firstOrder().getPrice().doubleValue());
         when(repository.findById(id)).thenReturn(Optional.of(firstOrder()));
         when(customerService.getCurrentUser()).thenReturn(secondOrder().getCustomer());
 
@@ -132,15 +129,11 @@ class OrderServiceTest {
     }
 
     @Test
-    @DisplayName("")
+    @DisplayName("Find all items to ship today")
     void findAllItemsToShipToday() {
         List<Order> orders = List.of(firstOrder(), secondOrder(), thirdOrder(), fourthOrder());
         when(repository.findAll()).thenReturn(orders);
 
-        List<ItemToShip> itemToShips = List.of(
-                new ItemToShip(firstOrder().getItemGroups(), firstOrder().getCustomer().getAddress()),
-                new ItemToShip(thirdOrder().getItemGroups(), thirdOrder().getCustomer().getAddress()),
-                new ItemToShip(fourthOrder().getItemGroups(), fourthOrder().getCustomer().getAddress()));
 
         ItemsToShipListDto itemsToShipListDto = new ItemsToShipListDto(
                 List.of(

@@ -1,11 +1,11 @@
 package com.eurder.backend.controller;
 
 import com.eurder.backend.dto.reponse.CreatedObjectIdDto;
+import com.eurder.backend.dto.reponse.ItemDtoList;
 import com.eurder.backend.dto.request.CreateItemDto;
 import com.eurder.backend.dto.request.UpdateItemDto;
 import com.eurder.backend.service.ItemService;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,5 +36,10 @@ public class ItemController {
     public ResponseEntity<Void> update(@Valid @RequestBody UpdateItemDto updateItemDto) {
         service.update(updateItemDto);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping()
+    public ResponseEntity<ItemDtoList> findAll() {
+        return ResponseEntity.ok(service.findAll());
     }
 }

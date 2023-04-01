@@ -1,5 +1,6 @@
 package com.eurder.backend.repository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,6 +19,6 @@ public abstract sealed class AbstractCrud<T, S> implements CRUD<T, S> permits Cu
 
     @Override
     public List<T> findAll() {
-        return repository.values().stream().toList();
+        return new ArrayList<>(repository.values().stream().toList());
     }
 }

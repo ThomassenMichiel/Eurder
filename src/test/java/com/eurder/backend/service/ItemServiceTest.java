@@ -1,12 +1,13 @@
 package com.eurder.backend.service;
 
 import com.eurder.backend.domain.Item;
+import com.eurder.backend.dto.reponse.ItemDto;
+import com.eurder.backend.dto.reponse.ItemDtoList;
 import com.eurder.backend.dto.request.CreateItemDto;
 import com.eurder.backend.dto.request.UpdateItemDto;
 import com.eurder.backend.exception.ItemNotFoundException;
 import com.eurder.backend.mapper.ItemMapper;
 import com.eurder.backend.repository.ItemRepository;
-import com.eurder.backend.util.ItemUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,8 +15,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
+import static com.eurder.backend.util.ItemUtil.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -33,9 +37,9 @@ class ItemServiceTest {
     @Test
     @DisplayName("Save an item")
     void save() {
-        Item item = ItemUtil.orange();
-        Item itemAfterCreation = ItemUtil.orange(10L);
-        CreateItemDto given = ItemUtil.createItemDto(ItemUtil.orange());
+        Item item = orange();
+        Item itemAfterCreation = orange(10L);
+        CreateItemDto given = createItemDto(orange());
         when(repository.save(item)).thenReturn(itemAfterCreation);
         when(mapper.toDomain(given)).thenReturn(item);
 
@@ -51,11 +55,11 @@ class ItemServiceTest {
     @DisplayName("Find by id")
     void findById() {
         Long id = 10L;
-        when(repository.findById(id)).thenReturn(Optional.of(ItemUtil.apple(id)));
+        when(repository.findById(id)).thenReturn(Optional.of(apple(id)));
 
         Item answer = service.findById(id);
 
-        assertThat(answer).isEqualTo(ItemUtil.apple(10L));
+        assertThat(answer).isEqualTo(apple(10L));
 
         verify(repository).findById(id);
     }
@@ -74,12 +78,27 @@ class ItemServiceTest {
     @Test
     @DisplayName("Update an item")
     void update() {
-        Item item = ItemUtil.orange(1L);
-        UpdateItemDto updateItemDto = ItemUtil.updateItemDto(item);
+        Item item = orange(1L);
+        UpdateItemDto updateItemDto = updateItemDto(item);
         when(mapper.toDomain(updateItemDto)).thenReturn(item);
 
         service.update(updateItemDto);
 
         verify(repository, times(1)).save(item);
+    }
+
+    @Test
+    @DisplayName("Find all items")
+    void findAllItems() {
+        List<Item> given = new ArrayList<>(List.of(apple(), banana(), orange(), strawberry()));
+        List<ItemDto> itemDtos = new ArrayList<>(List.of(toDto(banana()), toDto(strawberry()), toDto(orange()), toDto(apple())));
+        ItemDtoList expected = new ItemDtoList(itemDtos);
+
+        when(repository.findAll()).thenReturn(given);
+        when(mapper.toDto(given)).thenReturn(expected);
+
+        ItemDtoList answer = service.findAll();
+
+        assertThat(answer).isEqualTo(expected);
     }
 }

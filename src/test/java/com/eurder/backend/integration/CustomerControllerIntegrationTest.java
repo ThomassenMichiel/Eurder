@@ -14,12 +14,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
 
 import static com.eurder.backend.util.CustomerUtil.*;
 import static io.restassured.http.ContentType.JSON;
@@ -190,13 +187,5 @@ class CustomerControllerIntegrationTest {
                 .port(port)
                 .post(host)
                 .then();
-    }
-
-    @TestConfiguration
-    static class TestContextConfiguration {
-        @Bean
-        public MethodValidationPostProcessor bean() {
-            return new MethodValidationPostProcessor();
-        }
     }
 }

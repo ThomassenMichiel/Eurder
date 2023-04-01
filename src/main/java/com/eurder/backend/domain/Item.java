@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.util.Objects;
 
 public class Item {
+    private final Long id;
     @NotNull(message = "Name cannot be null")
     @NotBlank(message = "Name cannot be blank")
     private final String name;
@@ -20,7 +21,7 @@ public class Item {
     @NotNull(message = "Amount cannot be null")
     @Min(value = 0, message = "Amount cannot be lower than 0")
     private int amount;
-    private Long id;
+    private ItemUrgency itemUrgency;
 
     public Item(String name, String description, BigDecimal price, int amount) {
         this(null, name, description, price, amount);
@@ -32,6 +33,7 @@ public class Item {
         this.description = description;
         this.price = price;
         this.amount = amount;
+        this.itemUrgency = ItemUrgency.getByAmount(amount);
     }
 
     public Long getId() {
@@ -54,6 +56,15 @@ public class Item {
         return amount;
     }
 
+    public ItemUrgency getItemUrgency() {
+        return itemUrgency;
+    }
+
+    public void decreaseBy(int amountToDecrease) {
+        this.amount -= amountToDecrease;
+        this.itemUrgency = ItemUrgency.getByAmount(this.amount);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -64,9 +75,5 @@ public class Item {
     @Override
     public int hashCode() {
         return Objects.hash(name);
-    }
-
-    public void decreaseBy(int amountToDecrease) {
-        this.amount -= amountToDecrease;
     }
 }

@@ -3,6 +3,8 @@ package com.eurder.backend.integration;
 import com.eurder.backend.domain.Item;
 import com.eurder.backend.dto.reponse.CreatedObjectIdDto;
 import com.eurder.backend.dto.reponse.CreatedOrderDto;
+import com.eurder.backend.dto.reponse.ItemDto;
+import com.eurder.backend.dto.reponse.ItemDtoList;
 import com.eurder.backend.dto.request.*;
 import com.eurder.backend.exception.ApiError;
 import com.eurder.backend.repository.ItemRepository;
@@ -13,14 +15,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.context.annotation.Bean;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
 
 import java.math.BigDecimal;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.eurder.backend.util.CustomerUtil.createCustomerDto;
@@ -156,6 +156,33 @@ class ItemControllerIntegrationTest {
         assertThat(repository.findAll()).doesNotContain(orange());
     }
 
+    @Test
+    @DisplayName("Find all items sorted by urgency")
+    void findAllItemsSortedByUrgency() {
+        postItem(createItemDto(orange()));
+        postItem(createItemDto(apple()));
+        postItem(createItemDto(banana()));
+        postItem(createItemDto(strawberry()));
+
+        List<ItemDto> itemDtos = new ArrayList<>(List.of(toDto(banana(3L)), toDto(orange(1L)), toDto(strawberry(4L)), toDto(apple(2L))));
+        ItemDtoList expected = new ItemDtoList(itemDtos);
+
+        ItemDtoList answer = RestAssured
+                .given()
+                .auth()
+                .preemptive()
+                .basic("admin", "admin")
+                .when()
+                .get(host)
+                .then()
+                .statusCode(OK.value())
+                .extract()
+                .as(ItemDtoList.class);
+
+        assertThat(answer.getItemList()).hasSize(4);
+        assertThat(answer).isEqualTo(expected);
+    }
+
     private ValidatableResponse postItem(CreateItemDto item) {
         return RestAssured.given()
                 .auth()
@@ -202,13 +229,5 @@ class ItemControllerIntegrationTest {
                 .port(port)
                 .post("http://localhost:" + port + "/customers")
                 .then();
-    }
-
-    @TestConfiguration
-    static class TestContextConfiguration {
-        @Bean
-        public MethodValidationPostProcessor bean() {
-            return new MethodValidationPostProcessor();
-        }
     }
 }

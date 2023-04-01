@@ -12,12 +12,10 @@ import com.eurder.backend.dto.request.CreateOrderDto;
 import com.eurder.backend.dto.request.UpdateItemDto;
 import com.eurder.backend.exception.ApiError;
 import com.eurder.backend.exception.ForbiddenException;
-import com.eurder.backend.exception.ItemNotFoundException;
 import com.eurder.backend.exception.OrderNotFoundException;
 import com.eurder.backend.repository.OrderRepository;
 import com.eurder.backend.service.CustomerService;
 import com.eurder.backend.service.ItemService;
-import com.eurder.backend.util.CustomerUtil;
 import com.eurder.backend.util.ItemUtil;
 import com.eurder.backend.util.OrderUtil;
 import io.restassured.RestAssured;
@@ -27,12 +25,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
 
 import java.math.BigDecimal;
 import java.net.URI;
@@ -40,8 +35,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static com.eurder.backend.util.CustomerUtil.*;
-import static com.eurder.backend.util.CustomerUtil.jack;
-import static com.eurder.backend.util.CustomerUtil.joe;
+import static com.eurder.backend.util.OrderUtil.toDto;
 import static com.eurder.backend.util.OrderUtil.*;
 import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -398,13 +392,5 @@ class OrderControllerIntegrationTest {
                 .port(port)
                 .post(host)
                 .then();
-    }
-
-    @TestConfiguration
-    static class TestContextConfiguration {
-        @Bean
-        public MethodValidationPostProcessor bean() {
-            return new MethodValidationPostProcessor();
-        }
     }
 }
