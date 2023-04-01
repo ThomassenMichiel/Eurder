@@ -10,27 +10,24 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class CustomerMapper {
+
+    private final AddressMapper addressMapper;
+
+    public CustomerMapper(AddressMapper addressMapper) {
+        this.addressMapper = addressMapper;
+    }
+
     public Customer toDomain(CreateCustomerDto createCustomerDto) {
-        AddressDto addressDto = createCustomerDto.getAddress();
-        Address address = null;
-        if (addressDto != null) {
-            address = new Address(addressDto.getStreet(), addressDto.getNumber(), addressDto.getZipcode(), addressDto.getCity());
-        }
-        return new Customer(createCustomerDto.getFirstName(), createCustomerDto.getLastName(), createCustomerDto.getEmail(), address, createCustomerDto.getPhoneNumber(), createCustomerDto.getPassword());
+        return new Customer(createCustomerDto.getFirstName(), createCustomerDto.getLastName(), createCustomerDto.getEmail(), addressMapper.toDomain(createCustomerDto.getAddress()), createCustomerDto.getPhoneNumber(), createCustomerDto.getPassword());
     }
 
     public CustomerDto toDto(Customer customer) {
-        Address address = customer.getAddress();
-        AddressDto addressDto = null;
-        if (address != null) {
-            addressDto = new AddressDto(address.getStreet(), address.getNumber(), address.getZipcode(), address.getCity());
-        }
         return new CustomerDto(
                 customer.getId(),
                 customer.getFirstName(),
                 customer.getLastName(),
                 customer.getEmail(),
-                addressDto,
+                addressMapper.toDto(customer.getAddress()),
                 customer.getPhoneNumber()
         );
     }

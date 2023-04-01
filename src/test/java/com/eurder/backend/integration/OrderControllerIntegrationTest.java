@@ -2,7 +2,9 @@ package com.eurder.backend.integration;
 
 import com.eurder.backend.domain.Item;
 import com.eurder.backend.domain.ItemGroup;
+import com.eurder.backend.domain.Order;
 import com.eurder.backend.dto.reponse.CreatedOrderDto;
+import com.eurder.backend.dto.reponse.ItemsToShipListDto;
 import com.eurder.backend.dto.reponse.OrderDto;
 import com.eurder.backend.dto.reponse.OrderListDto;
 import com.eurder.backend.dto.request.CreateItemGroupDto;
@@ -17,6 +19,7 @@ import com.eurder.backend.service.CustomerService;
 import com.eurder.backend.service.ItemService;
 import com.eurder.backend.util.CustomerUtil;
 import com.eurder.backend.util.ItemUtil;
+import com.eurder.backend.util.OrderUtil;
 import io.restassured.RestAssured;
 import io.restassured.response.ValidatableResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,6 +39,7 @@ import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
 
+import static com.eurder.backend.util.CustomerUtil.*;
 import static com.eurder.backend.util.CustomerUtil.jack;
 import static com.eurder.backend.util.CustomerUtil.joe;
 import static com.eurder.backend.util.OrderUtil.*;
@@ -66,10 +70,10 @@ class OrderControllerIntegrationTest {
         itemService.save(ItemUtil.createItemDto(ItemUtil.orange(4L)));
 
 
-        customerService.save(CustomerUtil.createCustomerDto(firstOrder().getCustomer()));
-        customerService.save(CustomerUtil.createCustomerDto(secondOrder().getCustomer()));
-        customerService.save(CustomerUtil.createCustomerDto(thirdOrder().getCustomer()));
-        customerService.save(CustomerUtil.createCustomerDto(fourthOrder().getCustomer()));
+        customerService.save(createCustomerDto(firstOrder().getCustomer()));
+        customerService.save(createCustomerDto(secondOrder().getCustomer()));
+        customerService.save(createCustomerDto(thirdOrder().getCustomer()));
+        customerService.save(createCustomerDto(fourthOrder().getCustomer()));
     }
 
     @Test
@@ -332,11 +336,55 @@ class OrderControllerIntegrationTest {
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .extract()
                 .as(OrderNotFoundException.class);
+    }
 
+    @Test
+    @DisplayName("Find all items shipping today - no items found")
+    void findAllItemsShippingToday_empty() {
+        ItemsToShipListDto answer = RestAssured
+                .given()
+                .port(port)
+                .auth()
+                .preemptive()
+                .basic("admin", "admin")
+                .when()
+                .get(host + "/shipping")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .as(ItemsToShipListDto.class);
+
+        assertThat(answer.getItems()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Find all items to ship today")
+    void findAllItemsShippingToday() {
+        List.of(firstOrder(), thirdOrder(), fourthOrder()).forEach(order -> {
+            ItemGroup itemgroup = new ItemGroup(order.getItemGroups().get(0).getItem(), order.getItemGroups().get(0).getAmount(), order.getItemGroups().get(0).getShippingDate().minusDays(1));
+            Order newOrder = new Order(null, List.of(itemgroup), order.getCustomer());
+            repository.save(newOrder);
+        });
+
+        ItemsToShipListDto answer = RestAssured
+                .given()
+                .port(port)
+                .auth()
+                .preemptive()
+                .basic("admin", "admin")
+                .when()
+                .get(host + "/shipping")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .as(ItemsToShipListDto.class);
+
+        assertThat(answer.getItems()).extracting("address").contains(createCustomerDto(firstOrder().getCustomer()).getAddress(), createCustomerDto(thirdOrder().getCustomer()).getAddress(), createCustomerDto(fourthOrder().getCustomer()).getAddress());
+        assertThat(answer.getItems()).extracting("items").contains(OrderUtil.toDto(firstOrder()).getItemGroups(), OrderUtil.toDto(thirdOrder()).getItemGroups(), OrderUtil.toDto(fourthOrder()).getItemGroups());
     }
 
     private ValidatableResponse post(CreateOrderDto order) {
-        return post(order, CustomerUtil.joe(1L).getEmail(), CustomerUtil.joe(1L).getPassword());
+        return post(order, joe(1L).getEmail(), joe(1L).getPassword());
     }
 
     private ValidatableResponse post(CreateOrderDto order, String id, String email) {

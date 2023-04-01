@@ -1,6 +1,7 @@
 package com.eurder.backend.controller;
 
 import com.eurder.backend.dto.reponse.CreatedOrderDto;
+import com.eurder.backend.dto.reponse.ItemsToShipListDto;
 import com.eurder.backend.dto.reponse.OrderListDto;
 import com.eurder.backend.dto.request.CreateOrderDto;
 import com.eurder.backend.service.OrderService;
@@ -39,5 +40,11 @@ public class OrderController {
     public ResponseEntity<CreatedOrderDto> reorder(@PathVariable Long previousOrderId) {
         CreatedOrderDto reorder = service.reorder(previousOrderId);
         return ResponseEntity.created(reorder.getLocation()).body(reorder);
+    }
+
+    @GetMapping("/shipping")
+    @ResponseStatus(OK)
+    public ResponseEntity<ItemsToShipListDto> findAllShippingToday() {
+        return ResponseEntity.ok(service.findAllItemsToShipToday());
     }
 }

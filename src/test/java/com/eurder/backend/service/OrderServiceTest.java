@@ -1,13 +1,12 @@
 package com.eurder.backend.service;
 
 import com.eurder.backend.domain.Customer;
+import com.eurder.backend.domain.ItemToShip;
 import com.eurder.backend.domain.Order;
-import com.eurder.backend.dto.reponse.CreatedOrderDto;
-import com.eurder.backend.dto.reponse.OrderDto;
-import com.eurder.backend.dto.reponse.OrderListDto;
+import com.eurder.backend.dto.reponse.*;
 import com.eurder.backend.dto.request.CreateOrderDto;
-import com.eurder.backend.exception.OrderNotFoundException;
 import com.eurder.backend.exception.ForbiddenException;
+import com.eurder.backend.exception.OrderNotFoundException;
 import com.eurder.backend.mapper.OrderMapper;
 import com.eurder.backend.repository.OrderRepository;
 import com.eurder.backend.util.CustomerUtil;
@@ -130,5 +129,41 @@ class OrderServiceTest {
         verifyNoInteractions(mapper);
         verify(customerService, times(1)).getCurrentUser();
         verifyNoMoreInteractions(customerService);
+    }
+
+    @Test
+    @DisplayName("")
+    void findAllItemsToShipToday() {
+        List<Order> orders = List.of(firstOrder(), secondOrder(), thirdOrder(), fourthOrder());
+        when(repository.findAll()).thenReturn(orders);
+
+        List<ItemToShip> itemToShips = List.of(
+                new ItemToShip(firstOrder().getItemGroups(), firstOrder().getCustomer().getAddress()),
+                new ItemToShip(thirdOrder().getItemGroups(), thirdOrder().getCustomer().getAddress()),
+                new ItemToShip(fourthOrder().getItemGroups(), fourthOrder().getCustomer().getAddress()));
+
+        ItemsToShipListDto itemsToShipListDto = new ItemsToShipListDto(
+                List.of(
+                        new ItemsToShipDto(
+                                List.of(new ItemGroupDto(firstOrder().getItemGroups().get(0).getItem().getName(), firstOrder().getItemGroups().get(0).getAmount(), firstOrder().getItemGroups().get(0).getPrice().doubleValue())),
+                                CustomerUtil.toDto(firstOrder().getCustomer()).getAddress()
+                        ),
+                        new ItemsToShipDto(
+                                List.of(new ItemGroupDto(thirdOrder().getItemGroups().get(0).getItem().getName(), thirdOrder().getItemGroups().get(0).getAmount(), thirdOrder().getItemGroups().get(0).getPrice().doubleValue())),
+                                CustomerUtil.toDto(thirdOrder().getCustomer()).getAddress()
+                        ),
+                        new ItemsToShipDto(
+                                List.of(new ItemGroupDto(fourthOrder().getItemGroups().get(0).getItem().getName(), fourthOrder().getItemGroups().get(0).getAmount(), fourthOrder().getItemGroups().get(0).getPrice().doubleValue())),
+                                CustomerUtil.toDto(fourthOrder().getCustomer()).getAddress()
+                        )
+                )
+        );
+
+
+        when(mapper.toDto(any(List.class))).thenReturn(itemsToShipListDto);
+
+        ItemsToShipListDto allItemsToShipToday = service.findAllItemsToShipToday();
+
+        assertThat(allItemsToShipToday).isEqualTo(itemsToShipListDto);
     }
 }

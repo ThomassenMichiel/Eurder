@@ -17,6 +17,12 @@ public class ItemGroup {
         calculateShippingDate();
     }
 
+    public ItemGroup(Item item, int amount, LocalDate shippingDate) {
+        this.item = item;
+        this.amount = amount;
+        this.shippingDate = shippingDate;
+    }
+
     public Item getItem() {
         return item;
     }
@@ -33,7 +39,7 @@ public class ItemGroup {
         return item.getPrice().multiply(BigDecimal.valueOf(amount));
     }
 
-    public void calculateShippingDate() {
+    private void calculateShippingDate() {
         int daysToAdd = STANDARD_SHIPPING;
         if ((item.getAmount() - amount) <= 0) {
             daysToAdd = OUT_OF_STOCK_SHIPPING;
