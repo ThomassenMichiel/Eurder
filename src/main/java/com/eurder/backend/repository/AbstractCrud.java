@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-public abstract sealed class AbstractCrud<T, S> implements CRUD<T, S> permits CustomerRepository, ItemRepository, OrderRepository {
+public abstract sealed class AbstractCrud<T, S> implements CRUD<T, S> permits ItemRepositoryJDBC, OrderRepository {
     protected ConcurrentHashMap<S, T> repository;
 
     protected AbstractCrud() {

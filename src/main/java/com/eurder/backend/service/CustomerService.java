@@ -31,7 +31,7 @@ public class CustomerService {
 
     Customer getCurrentUser() {
         String username = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
-        return repository.findByUsername(username)
+        return repository.findCustomerByEmail(username)
                 .orElseThrow(CustomerNotFoundException::new);
     }
 

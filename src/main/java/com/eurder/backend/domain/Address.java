@@ -1,12 +1,26 @@
 package com.eurder.backend.domain;
 
+import jakarta.persistence.*;
+
 import java.util.Objects;
 
+@Entity
+@Table(name = "address")
 public class Address {
-    private final String street;
-    private final String number;
-    private final String zipcode;
-    private final String city;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @Column(name = "street")
+    private String street;
+    @Column(name = "number")
+    private String number;
+    @Column(name = "zipcode")
+    private String zipcode;
+    @Column(name = "city")
+    private String city;
+
+    public Address() {
+    }
 
     public Address(String street, String number, String zipcode, String city) {
         this.street = street;

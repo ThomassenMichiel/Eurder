@@ -12,8 +12,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -81,7 +79,7 @@ class CustomerServiceTest {
     @DisplayName("Get current user")
     void getCurrentUser() {
         Customer customer = john(1L);
-        when(repository.findByUsername(customer.getUsername())).thenReturn(Optional.of(customer));
+        when(repository.findCustomerByEmail(customer.getUsername())).thenReturn(Optional.of(customer));
         Authentication authentication = mock(Authentication.class);
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
