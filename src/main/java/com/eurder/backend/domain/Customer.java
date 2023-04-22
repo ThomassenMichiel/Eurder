@@ -35,7 +35,7 @@ public class Customer implements UserDetails {
     @JoinColumn(name = "roles_id")
     private List<Role> roles;
 
-    private Customer() {}
+    public Customer() {}
 
     public Customer(String firstName, String lastName, String email, Address address, String phoneNumber, String password) {
         this(null, firstName, lastName, email, address, phoneNumber, password, new ArrayList<>());

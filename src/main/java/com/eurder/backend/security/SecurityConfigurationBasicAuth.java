@@ -42,6 +42,7 @@ public class SecurityConfigurationBasicAuth {
                         .anyRequest().authenticated()
                 )
                 .httpBasic(Customizer.withDefaults());
+        http.headers().frameOptions().disable();
         return http.build();
     }
 }

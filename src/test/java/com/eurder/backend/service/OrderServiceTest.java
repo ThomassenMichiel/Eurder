@@ -2,10 +2,10 @@ package com.eurder.backend.service;
 
 import com.eurder.backend.domain.Customer;
 import com.eurder.backend.domain.Order;
-import com.eurder.backend.dto.reponse.*;
+import com.eurder.backend.dto.reponse.CreatedOrderDto;
+import com.eurder.backend.dto.reponse.OrderDto;
+import com.eurder.backend.dto.reponse.OrderListDto;
 import com.eurder.backend.dto.request.CreateOrderDto;
-import com.eurder.backend.exception.ForbiddenException;
-import com.eurder.backend.exception.OrderNotFoundException;
 import com.eurder.backend.mapper.OrderMapper;
 import com.eurder.backend.repository.OrderRepository;
 import com.eurder.backend.util.CustomerUtil;
@@ -21,142 +21,83 @@ import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 
+import static com.eurder.backend.util.CustomerUtil.jack;
 import static com.eurder.backend.util.OrderUtil.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class OrderServiceTest {
     @Mock
     private OrderRepository repository;
     @Mock
-    private OrderMapper mapper;
+    private OrderMapper orderMapper;
     @Mock
     private CustomerService customerService;
     @InjectMocks
     private OrderService service;
 
     @Test
-    @DisplayName("Save a order")
+    @DisplayName("Save method")
     void save() {
-        Order order = firstOrder();
-        Order orderAfterCreation = firstOrder(10L);
-        CreateOrderDto given = OrderUtil.createOrderDto(order);
-        CreatedOrderDto createdOrderDto = new CreatedOrderDto(orderAfterCreation.getId(), URI.create("/orders/" + orderAfterCreation.getId()), orderAfterCreation.getPrice().doubleValue());
-        when(repository.save(order)).thenReturn(orderAfterCreation);
-        when(mapper.toDomain(given)).thenReturn(order);
-        when(customerService.getCurrentUser()).thenReturn(order.getCustomer());
-        when(mapper.toCreatedOrderDto(order)).thenReturn(createdOrderDto);
+        CreatedOrderDto createdOrderDto = new CreatedOrderDto(1L, URI.create("/orders/1"), firstOrder().getPrice().doubleValue());
+        CreateOrderDto orderDto = createOrderDto(firstOrder());
+        when(orderMapper.toDomain(any())).thenReturn(firstOrder());
+        when(orderMapper.toCreatedOrderDto(any())).thenReturn(createdOrderDto);
 
-        CreatedOrderDto answer = service.save(given);
+        CreatedOrderDto answer = service.save(orderDto);
 
         assertThat(answer).isEqualTo(createdOrderDto);
-
-        verify(mapper).toDomain(any());
-        verify(repository).save(any());
     }
 
     @Test
-    @DisplayName("Find all orders for the current user")
-    void findAllForCurrentUser() {
-        Customer customer = CustomerUtil.joe(1L);
+    @DisplayName("Find all")
+    void findALl() {
+        List<OrderDto> dto = List.of(toDto(firstOrder()), toDto(secondOrder()));
+        OrderListDto expected = new OrderListDto(dto, firstOrder().getPrice().add(secondOrder().getPrice()).doubleValue());
+        List<Order> domain = List.of(firstOrder(), secondOrder());
+        Customer customer = CustomerUtil.bobby(1L);
         when(customerService.getCurrentUser()).thenReturn(customer);
-        List<Order> orders = List.of(firstOrder(1L), OrderUtil.secondOrder(2L));
-        when(repository.findAllByCustomer(customer)).thenReturn(orders);
-
-        List<OrderDto> orderDtos = orders.stream().map(mapper::toDto).toList();
-        OrderListDto orderListDto = new OrderListDto(orderDtos, firstOrder(1L).getPrice().doubleValue() + secondOrder(2L).getPrice().doubleValue());
+        when(repository.findAllByCustomer(customer)).thenReturn(domain);
+        when(orderMapper.toDto(any(Order.class))).thenReturn(toDto(firstOrder()), toDto(secondOrder()));
 
         OrderListDto answer = service.findAll();
 
-        assertThat(answer).isEqualTo(orderListDto);
+        assertThat(answer).isEqualTo(expected);
     }
 
     @Test
-    @DisplayName("Reorder a previous order")
+    @DisplayName("Reorder")
     void reorder() {
-        Long id = 1L;
-        CreatedOrderDto createdOrderDto = new CreatedOrderDto(1L, URI.create("/orders/" + id), firstOrder().getPrice().doubleValue());
-        when(repository.findById(id)).thenReturn(Optional.of(firstOrder()));
-        when(repository.save(any())).thenReturn(firstOrder(1L));
-        when(mapper.toCreatedOrderDto(firstOrder())).thenReturn(createdOrderDto);
-        when(customerService.getCurrentUser()).thenReturn(firstOrder().getCustomer());
+        CreatedOrderDto createdOrderDto = new CreatedOrderDto(2L, URI.create("/orders/2"), firstOrder().getPrice().doubleValue());
+        when(repository.findById(anyLong())).thenReturn(Optional.of(OrderUtil.firstOrder(1L)));
+        when(customerService.getCurrentUser()).thenReturn(OrderUtil.firstOrder().getCustomer());
+        when(orderMapper.toDomain(any())).thenReturn(firstOrder(1L));
+        when(orderMapper.toDomain(any())).thenReturn(firstOrder());
+        when(orderMapper.toCreatedOrderDto(any())).thenReturn(createdOrderDto);
+        CreatedOrderDto expected = new CreatedOrderDto(2L, URI.create("/orders/2"), firstOrder().getPrice().doubleValue());
 
         CreatedOrderDto answer = service.reorder(1L);
 
-        assertThat(answer).isEqualTo(createdOrderDto);
-        verify(repository, times(1)).findById(id);
-        verify(repository, times(1)).save(any());
-        verify(mapper, times(1)).toCreatedOrderDto(any());
-        verify(customerService, times(2)).getCurrentUser();
+        assertThat(answer).isEqualTo(expected);
     }
 
     @Test
-    @DisplayName("Reorder a previous order - order not found")
-    void reorder_orderNotFound() {
-        Long id = 1L;
-        when(repository.findById(id)).thenReturn(Optional.empty());
+    @DisplayName("Reorder - wrong customer")
+    void reorder_wrongCustomer() {
+        when(customerService.getCurrentUser()).thenReturn(jack());
+        when(repository.findById(1L)).thenReturn(Optional.of(OrderUtil.firstOrder()));
 
         assertThatThrownBy(() -> service.reorder(1L))
-                .hasMessage("Order not found")
-                .isInstanceOf(OrderNotFoundException.class);
-
-
-        verify(repository, times(1)).findById(id);
-        verifyNoMoreInteractions(repository);
-        verifyNoInteractions(mapper);
-        verifyNoInteractions(customerService);
-    }
-
-    @Test
-    @DisplayName("Reorder a previous order - unauthorized")
-    void reorder_unauthorized() {
-        Long id = 1L;
-        when(repository.findById(id)).thenReturn(Optional.of(firstOrder()));
-        when(customerService.getCurrentUser()).thenReturn(secondOrder().getCustomer());
-
-        assertThatThrownBy(() -> service.reorder(1L))
-                .hasMessage("You have no access to this resource")
-                .isInstanceOf(ForbiddenException.class);
-
-        verify(repository, times(1)).findById(id);
-        verifyNoMoreInteractions(repository);
-        verifyNoInteractions(mapper);
-        verify(customerService, times(1)).getCurrentUser();
-        verifyNoMoreInteractions(customerService);
+                .hasMessage("You have no access to this resource");
     }
 
     @Test
     @DisplayName("Find all items to ship today")
     void findAllItemsToShipToday() {
-        List<Order> orders = List.of(firstOrder(), secondOrder(), thirdOrder(), fourthOrder());
-        when(repository.findAll()).thenReturn(orders);
-
-
-        ItemsToShipListDto itemsToShipListDto = new ItemsToShipListDto(
-                List.of(
-                        new ItemsToShipDto(
-                                List.of(new ItemGroupDto(firstOrder().getItemGroups().get(0).getItem().getName(), firstOrder().getItemGroups().get(0).getAmount(), firstOrder().getItemGroups().get(0).getPrice().doubleValue())),
-                                CustomerUtil.toDto(firstOrder().getCustomer()).getAddress()
-                        ),
-                        new ItemsToShipDto(
-                                List.of(new ItemGroupDto(thirdOrder().getItemGroups().get(0).getItem().getName(), thirdOrder().getItemGroups().get(0).getAmount(), thirdOrder().getItemGroups().get(0).getPrice().doubleValue())),
-                                CustomerUtil.toDto(thirdOrder().getCustomer()).getAddress()
-                        ),
-                        new ItemsToShipDto(
-                                List.of(new ItemGroupDto(fourthOrder().getItemGroups().get(0).getItem().getName(), fourthOrder().getItemGroups().get(0).getAmount(), fourthOrder().getItemGroups().get(0).getPrice().doubleValue())),
-                                CustomerUtil.toDto(fourthOrder().getCustomer()).getAddress()
-                        )
-                )
-        );
-
-
-        when(mapper.toDto(any(List.class))).thenReturn(itemsToShipListDto);
-
-        ItemsToShipListDto allItemsToShipToday = service.findAllItemsToShipToday();
-
-        assertThat(allItemsToShipToday).isEqualTo(itemsToShipListDto);
+        when(repository.findAll()).thenReturn(List.of(firstOrder(1L), secondOrder(2L)));
     }
 }

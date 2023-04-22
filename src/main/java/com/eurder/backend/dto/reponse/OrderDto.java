@@ -33,11 +33,20 @@ public class OrderDto {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof OrderDto orderDto)) return false;
-        return Objects.equals(id, orderDto.id) && Objects.equals(itemGroups, orderDto.itemGroups);
+        return Double.compare(orderDto.price, price) == 0 && Objects.equals(id, orderDto.id) && Objects.equals(itemGroups, orderDto.itemGroups);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, itemGroups);
+        return Objects.hash(id, itemGroups, price);
+    }
+
+    @Override
+    public String toString() {
+        return "OrderDto{" +
+                "id=" + id +
+                ", itemGroups=" + itemGroups +
+                ", price=" + price +
+                '}';
     }
 }

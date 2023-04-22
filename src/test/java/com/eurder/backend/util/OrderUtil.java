@@ -8,6 +8,7 @@ import com.eurder.backend.dto.request.CreateItemGroupDto;
 import com.eurder.backend.dto.request.CreateOrderDto;
 
 
+import java.time.LocalDate;
 import java.util.List;
 
 public final class OrderUtil {
@@ -16,7 +17,7 @@ public final class OrderUtil {
     }
 
     public static Order firstOrder(Long id) {
-        ItemGroup itemGroup = new ItemGroup(ItemUtil.apple(1L), 1);
+        ItemGroup itemGroup = new ItemGroup(id, ItemUtil.apple(1L), 1, LocalDate.now());
         return new Order(id, List.of(itemGroup), CustomerUtil.bobby(1L));
     }
 

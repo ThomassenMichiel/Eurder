@@ -7,11 +7,13 @@ import com.eurder.backend.dto.request.CreateCustomerDto;
 import com.eurder.backend.exception.CustomerNotFoundException;
 import com.eurder.backend.mapper.CustomerMapper;
 import com.eurder.backend.repository.CustomerRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 @Service
+@Transactional
 public class CustomerService {
     private final CustomerRepository repository;
     private final CustomerMapper mapper;
@@ -29,7 +31,7 @@ public class CustomerService {
         return createdCustomer.getId();
     }
 
-    Customer getCurrentUser() {
+    public Customer getCurrentUser() {
         String username = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
         return repository.findCustomerByEmail(username)
                 .orElseThrow(CustomerNotFoundException::new);

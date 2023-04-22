@@ -17,7 +17,7 @@ public class ItemGroupMapper {
 
     public ItemGroup toDomain(CreateItemGroupDto createItemGroupDto) {
         Item item = itemService.findById(createItemGroupDto.getItemId());
-        return new ItemGroup(item, createItemGroupDto.getAmount());
+        return new ItemGroup(item, createItemGroupDto.getAmount(), item.getPrice());
     }
 
     public ItemGroupDto toDto(ItemGroup itemGroup) {

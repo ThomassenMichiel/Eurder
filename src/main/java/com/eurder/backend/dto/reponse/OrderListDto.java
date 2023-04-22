@@ -34,4 +34,12 @@ public class OrderListDto {
     public int hashCode() {
         return Objects.hash(orders, totalPrice);
     }
+
+    @Override
+    public String toString() {
+        return "OrderListDto{" +
+                "orders=" + orders +
+                ", totalPrice=" + totalPrice +
+                '}';
+    }
 }

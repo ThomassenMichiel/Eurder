@@ -37,7 +37,7 @@ public class OrderController {
 
     @PostMapping("/reorder/{previousOrderId}")
     @ResponseStatus(OK)
-    public ResponseEntity<CreatedOrderDto> reorder(@PathVariable Long previousOrderId) {
+    public ResponseEntity<CreatedOrderDto> reorder(@PathVariable(name = "previousOrderId") Long previousOrderId) {
         CreatedOrderDto reorder = service.reorder(previousOrderId);
         return ResponseEntity.created(reorder.getLocation()).body(reorder);
     }

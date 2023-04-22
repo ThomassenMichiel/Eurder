@@ -1,5 +1,6 @@
 package com.eurder.backend.domain;
 
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -7,21 +8,33 @@ import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.Objects;
 
+@Entity
+@Table(name = "ITEM")
 public class Item {
-    private final Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ID")
+    private Long id;
     @NotNull(message = "Name cannot be null")
     @NotBlank(message = "Name cannot be blank")
-    private final String name;
+    @Column(name = "NAME")
+    private String name;
     @NotNull(message = "Description cannot be null")
     @NotBlank(message = "Description cannot be blank")
-    private final String description;
+    @Column(name = "DESCRIPTION")
+    private String description;
     @NotNull(message = "Price cannot be null")
     @Min(value = 0, message = "Price cannot be lower than 0")
-    private final BigDecimal price;
-    @NotNull(message = "Amount cannot be null")
-    @Min(value = 0, message = "Amount cannot be lower than 0")
+    @Column(name = "PRICE")
+    private BigDecimal price;
+    @Column(name = "AMOUNT")
     private int amount;
+    @Column(name = "ITEM_URGENCY")
+    @Enumerated(EnumType.STRING)
     private ItemUrgency itemUrgency;
+
+    public Item() {
+    }
 
     public Item(String name, String description, BigDecimal price, int amount) {
         this(null, name, description, price, amount);

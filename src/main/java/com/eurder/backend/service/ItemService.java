@@ -7,12 +7,14 @@ import com.eurder.backend.dto.request.CreateItemDto;
 import com.eurder.backend.exception.ItemNotFoundException;
 import com.eurder.backend.mapper.ItemMapper;
 import com.eurder.backend.repository.ItemRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
 
 @Service
+@Transactional
 public class ItemService {
     private final ItemRepository repository;
     private final ItemMapper mapper;

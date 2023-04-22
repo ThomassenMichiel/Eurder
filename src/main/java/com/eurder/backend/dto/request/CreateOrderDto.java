@@ -17,6 +17,8 @@ public class CreateOrderDto {
         this.itemGroupList = itemGroupDtoList;
     }
 
+
+
     public List<CreateItemGroupDto> getItemGroupList() {
         return itemGroupList;
     }

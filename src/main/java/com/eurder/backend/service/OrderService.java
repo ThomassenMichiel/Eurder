@@ -1,13 +1,16 @@
 package com.eurder.backend.service;
 
 import com.eurder.backend.domain.*;
-import com.eurder.backend.dto.reponse.*;
+import com.eurder.backend.dto.reponse.CreatedOrderDto;
+import com.eurder.backend.dto.reponse.ItemsToShipListDto;
+import com.eurder.backend.dto.reponse.OrderListDto;
 import com.eurder.backend.dto.request.CreateItemGroupDto;
 import com.eurder.backend.dto.request.CreateOrderDto;
 import com.eurder.backend.exception.ForbiddenException;
 import com.eurder.backend.exception.OrderNotFoundException;
 import com.eurder.backend.mapper.OrderMapper;
 import com.eurder.backend.repository.OrderRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -15,6 +18,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Service
+@Transactional
 public class OrderService {
     private final OrderRepository repository;
     private final OrderMapper orderMapper;
@@ -27,20 +31,16 @@ public class OrderService {
     }
 
     public CreatedOrderDto save(CreateOrderDto orderDto) {
-        Order savedOrder = repository.save(orderMapper.toDomain(orderDto));
-        savedOrder.setCustomer(customerService.getCurrentUser());
-
+        Order savedOrder = orderMapper.toDomain(orderDto);
         savedOrder.getItemGroups().forEach(itemGroup -> itemGroup.getItem().decreaseBy(itemGroup.getAmount()));
-
-        return orderMapper.toCreatedOrderDto(savedOrder);
+        return orderMapper.toCreatedOrderDto(repository.save(savedOrder));
     }
 
     public OrderListDto findAll() {
         Customer customer = customerService.getCurrentUser();
         List<Order> allOrders = repository.findAllByCustomer(customer);
-        double totalPrice = allOrders.stream().map(Order::getPrice).reduce(BigDecimal.ZERO, BigDecimal::add).doubleValue();
+        double totalPrice = allOrders.stream().flatMap(order -> order.getItemGroups().stream()).map(ItemGroup::getPrice).reduce(BigDecimal.ZERO, BigDecimal::add).doubleValue();
         return new OrderListDto(allOrders.stream().map(orderMapper::toDto).toList(), totalPrice);
-
     }
 
     public CreatedOrderDto reorder(Long previousOrderId) {
@@ -51,7 +51,10 @@ public class OrderService {
             throw new ForbiddenException();
         }
 
-        List<CreateItemGroupDto> itemGroupDtos = previousOrder.getItemGroups().stream().map(itemGroup -> new CreateItemGroupDto(itemGroup.getItem().getId(), itemGroup.getAmount())).toList();
+        List<CreateItemGroupDto> itemGroupDtos = previousOrder.getItemGroups()
+                .stream()
+                .map(itemGroup -> new CreateItemGroupDto(itemGroup.getItem().getId(), itemGroup.getAmount()))
+                .toList();
         return save(new CreateOrderDto(itemGroupDtos));
     }
 
