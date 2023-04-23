@@ -38,4 +38,13 @@ public class CreatedOrderDto {
     public int hashCode() {
         return Objects.hash(id, location, price);
     }
+
+    @Override
+    public String toString() {
+        return "CreatedOrderDto{" +
+                "id=" + id +
+                ", location=" + location +
+                ", price=" + price +
+                '}';
+    }
 }

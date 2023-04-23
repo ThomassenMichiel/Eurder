@@ -20,25 +20,15 @@ public class SecurityConfigurationBasicAuth {
     }
 
     @Bean
-    public InMemoryUserDetailsManager userDetailsService() {
-        UserDetails admin = User.builder()
-                .username("admin")
-                .password(encoder().encode("admin"))
-                .roles("ADMIN")
-                .build();
-        return new InMemoryUserDetailsManager(admin);
-    }
-
-    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf().disable()
                 .cors().and()
                 .authorizeHttpRequests(req -> req
                         .requestMatchers(HttpMethod.POST, "/customers/**").anonymous()
-                        .requestMatchers(HttpMethod.GET, "/customers").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/orders/**").hasRole("USER")
-                        .requestMatchers("/items/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/customers").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/orders/**").hasAuthority("USER")
+                        .requestMatchers("/items/**").hasAuthority("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .httpBasic(Customizer.withDefaults());

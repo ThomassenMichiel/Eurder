@@ -29,15 +29,12 @@ public class ItemGroup {
     private Order order;
 
     public ItemGroup(Item item, int amount) {
-        this.item = item;
-        this.amount = amount;
+        this(null, item, amount, LocalDate.now(), item.getPrice());
         calculateShippingDate();
     }
 
     public ItemGroup(Item item, int amount, BigDecimal price) {
-        this.item = item;
-        this.price = price;
-        this.amount = amount;
+        this(null, item, amount, LocalDate.now(), price);
         calculateShippingDate();
     }
 
@@ -46,10 +43,15 @@ public class ItemGroup {
     }
 
     public ItemGroup(Long id, Item item, int amount, LocalDate shippingDate) {
+        this(id, item, amount, shippingDate, BigDecimal.ZERO);
+    }
+
+    public ItemGroup(Long id, Item item, int amount, LocalDate shippingDate, BigDecimal price) {
         this.id = id;
         this.item = item;
         this.amount = amount;
         this.shippingDate = shippingDate;
+        this.price = price;
     }
 
     public Long getId() {
@@ -70,6 +72,10 @@ public class ItemGroup {
 
     public BigDecimal getPrice() {
         return price.multiply(BigDecimal.valueOf(amount));
+    }
+
+    public Order getOrder() {
+        return order;
     }
 
     private void calculateShippingDate() {

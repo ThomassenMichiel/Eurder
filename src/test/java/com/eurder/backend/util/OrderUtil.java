@@ -54,6 +54,10 @@ public final class OrderUtil {
     }
 
     public static OrderDto toDto(Order order) {
-        return new OrderDto(order.getId(), order.getItemGroups().stream().map(itemGroup -> new ItemGroupDto(itemGroup.getItem().getName(), itemGroup.getAmount(), itemGroup.getPrice().doubleValue())).toList(), order.getPrice().doubleValue());
+        return new OrderDto(order.getId(),
+                order.getItemGroups().stream().map(itemGroup -> new ItemGroupDto(itemGroup.getItem().getName(),
+                itemGroup.getAmount(),
+                itemGroup.getPrice().doubleValue())).toList(),
+                order.getPrice().doubleValue());
     }
 }

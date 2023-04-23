@@ -50,10 +50,8 @@ class ItemControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Save 1 item to an empty database")
+    @DisplayName("Save 1 item")
     void postSingleItem() {
-        assertThat(repository.findAll()).isEmpty();
-
         CreatedObjectIdDto answer = postItem(createItemDto(orange()))
                 .statusCode(CREATED.value())
                 .extract()
@@ -61,7 +59,7 @@ class ItemControllerIntegrationTest {
 
         assertThat(answer).isNotNull();
         assertThat(answer.getId()).isEqualTo(repository.findAll().size());
-        assertThat(answer.getLocation().getRawPath()).isEqualTo("/items/1");
+        assertThat(answer.getLocation().getRawPath()).isEqualTo("/items/2");
     }
 
     @Test
@@ -107,29 +105,21 @@ class ItemControllerIntegrationTest {
         postItem(createItemDto(banana()));
         postItem(createItemDto(strawberry()));
 
-        Item item = new Item(1L, "Potato", "This is a potato", BigDecimal.valueOf(1337), 200);
+        Item item = new Item(2L, "Potato", "This is a potato", BigDecimal.valueOf(1337), 200);
         UpdateItemDto updateItemDto = new UpdateItemDto(item.getId(), item.getName(), item.getDescription(), item.getPrice().doubleValue(), item.getAmount());
 
         putItem(updateItemDto)
                 .statusCode(OK.value());
 
-        assertThat(repository.findById(1L)).contains(item);
+        assertThat(repository.findById(2L)).contains(item);
         assertThat(repository.findAll()).doesNotContain(orange());
     }
 
     @Test
     @DisplayName("Order an item, update an item and order the same item again with updated values")
     void orderItem_thenUpdateItem_thenOrderTheUpdateItemAgain() {
-
-        postCustomer(createCustomerDto(jack()));
-
-        postItem(createItemDto(orange()));
-        postItem(createItemDto(apple()));
-        postItem(createItemDto(banana()));
-        postItem(createItemDto(strawberry()));
-
         CreateOrderDto createOrderDto = new CreateOrderDto(List.of(new CreateItemGroupDto(1L, 1)));
-        CreatedOrderDto expectedCreatedOrderDto = new CreatedOrderDto(1L, URI.create("/orders/" + 1L), orange(1L).getPrice().doubleValue());
+        CreatedOrderDto expectedCreatedOrderDto = new CreatedOrderDto(1L, URI.create("/orders/" + 1L), 2.22);
 
         CreatedOrderDto createdOrderDto = postOrder(createOrderDto)
                 .statusCode(CREATED.value())
@@ -161,19 +151,20 @@ class ItemControllerIntegrationTest {
     @Test
     @DisplayName("Find all items sorted by urgency")
     void findAllItemsSortedByUrgency() {
+        repository.deleteAll();
         postItem(createItemDto(orange()));
         postItem(createItemDto(apple()));
         postItem(createItemDto(banana()));
         postItem(createItemDto(strawberry()));
 
-        List<ItemDto> itemDtos = new ArrayList<>(List.of(toDto(banana(3L)), toDto(orange(1L)), toDto(strawberry(4L)), toDto(apple(2L))));
+        List<ItemDto> itemDtos = new ArrayList<>(List.of(toDto(banana(4L)), toDto(orange(2L)), toDto(strawberry(5L)), toDto(apple(3L))));
         ItemDtoList expected = new ItemDtoList(itemDtos);
 
         ItemDtoList answer = RestAssured
                 .given()
                 .auth()
                 .preemptive()
-                .basic("admin", "admin")
+                .basic("customer@customer.local", "customer")
                 .when()
                 .get(host)
                 .then()
@@ -189,7 +180,7 @@ class ItemControllerIntegrationTest {
         return RestAssured.given()
                 .auth()
                 .preemptive()
-                .basic("admin", "admin")
+                .basic("customer@customer.local", "customer")
                 .contentType(JSON)
                 .body(item)
                 .when()
@@ -203,7 +194,7 @@ class ItemControllerIntegrationTest {
                 .contentType(JSON)
                 .auth()
                 .preemptive()
-                .basic(jack().getUsername(), jack().getPassword())
+                .basic("customer@customer.local", "customer")
                 .body(createOrderDto)
                 .when()
                 .port(port)
@@ -214,7 +205,7 @@ class ItemControllerIntegrationTest {
     private ValidatableResponse putItem(UpdateItemDto item) {
         return RestAssured.given()
                 .auth()
-                .basic("admin", "admin")
+                .basic("customer@customer.local", "customer")
                 .contentType(JSON)
                 .body(item)
                 .when()

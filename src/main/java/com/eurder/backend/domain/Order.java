@@ -14,7 +14,7 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
     private Long id;
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true,mappedBy = "order")
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true,mappedBy = "order", fetch = FetchType.EAGER)
     private List<ItemGroup> itemGroups = new ArrayList<>();
     @OneToOne(optional = false)
     @JoinColumn(name = "CUSTOMER_ID")

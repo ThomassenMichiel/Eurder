@@ -9,6 +9,7 @@ import com.eurder.backend.dto.request.CreateOrderDto;
 import com.eurder.backend.exception.ForbiddenException;
 import com.eurder.backend.exception.OrderNotFoundException;
 import com.eurder.backend.mapper.OrderMapper;
+import com.eurder.backend.repository.ItemGroupRepository;
 import com.eurder.backend.repository.OrderRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -21,11 +22,13 @@ import java.util.List;
 @Transactional
 public class OrderService {
     private final OrderRepository repository;
+    private final ItemGroupRepository itemGroupRepository;
     private final OrderMapper orderMapper;
     private final CustomerService customerService;
 
-    public OrderService(OrderRepository repository, OrderMapper orderMapper, CustomerService customerService) {
+    public OrderService(OrderRepository repository, ItemGroupRepository itemGroupRepository, OrderMapper orderMapper, CustomerService customerService) {
         this.repository = repository;
+        this.itemGroupRepository = itemGroupRepository;
         this.orderMapper = orderMapper;
         this.customerService = customerService;
     }
@@ -59,12 +62,15 @@ public class OrderService {
     }
 
     public ItemsToShipListDto findAllItemsToShipToday() {
-        List<ItemToShip> listOfItemsToShip = repository.findAll()
-                .stream().map(order -> {
-                    Address address = order.getCustomer().getAddress();
-                    List<ItemGroup> items = order.getItemGroups().stream().filter(itemGroup -> itemGroup.getShippingDate().equals(LocalDate.now())).toList();
-                    return new ItemToShip(items, address);
-                }).toList();
+        List<ItemToShip> listOfItemsToShip = itemGroupRepository.findAllByShippingDateIs(LocalDate.now())
+                .stream().map(itemGroup -> new ItemToShip(List.of(itemGroup), itemGroup.getOrder().getCustomer().getAddress()))
+                .toList();
+//        List<ItemToShip> listOfItemsToShip = repository.findAll()
+//                .stream().map(order -> {
+//                    Address address = order.getCustomer().getAddress();
+//                    List<ItemGroup> items = order.getItemGroups().stream().filter(itemGroup -> itemGroup.getShippingDate().equals(LocalDate.now())).toList();
+//                    return new ItemToShip(items, address);
+//                }).toList();
         return orderMapper.toDto(listOfItemsToShip);
     }
 }

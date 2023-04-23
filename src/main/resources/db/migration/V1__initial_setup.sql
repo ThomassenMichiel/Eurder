@@ -68,4 +68,27 @@ create table orders
 );
 
 alter table item_group
-    add constraint order_id foreign key (order_id) references orders(id);
+    add constraint order_id foreign key (order_id) references orders (id);
+
+
+
+insert into role(id, name)
+VALUES (1, 'ADMIN'),
+       (2, 'USER');
+
+
+
+insert into address(street, number, zipcode, city)
+values ('cantersteen', '14', '1337', 'brussels');
+
+insert into customer( first_name, last_name, email, address_id, phone_number, password)
+values ('customer', 'customer', 'customer@customer.local', 1, '123456',
+        '$2a$12$RBhGJSErgv30ciB4HjgvvumvkZ6/K2V2X84wxGfSZr3HJkC8JLxqm'); // pw is customer
+insert into customer_roles(customer_id, roles_id)
+VALUES (1, 1),
+       (1, 2);
+insert into item(name, description, price, amount, item_urgency)
+values ('apple', 'It''s green', 2.22, 10, 'STOCK_HIGH');
+
+
+

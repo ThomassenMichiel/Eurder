@@ -1,6 +1,7 @@
 package com.eurder.backend.domain;
 
 import jakarta.persistence.*;
+import org.hibernate.Hibernate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -31,7 +32,7 @@ public class Customer implements UserDetails {
     private String phoneNumber;
     @Column(name = "password")
     private String password;
-    @OneToMany()
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinColumn(name = "roles_id")
     private List<Role> roles;
 
@@ -126,5 +127,19 @@ public class Customer implements UserDetails {
     @Override
     public int hashCode() {
         return Objects.hash(firstName, lastName);
+    }
+
+    @Override
+    public String toString() {
+        return "Customer{" +
+                "id=" + id +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", email='" + email + '\'' +
+                ", address=" + address +
+                ", phoneNumber='" + phoneNumber + '\'' +
+                ", password='" + password + '\'' +
+                ", roles=" + roles +
+                '}';
     }
 }

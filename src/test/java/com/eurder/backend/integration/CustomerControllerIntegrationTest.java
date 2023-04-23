@@ -41,21 +41,6 @@ class CustomerControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Save 1 customer to an empty database")
-    void postSingleCustomer() {
-        assertThat(repository.findAll()).isEmpty();
-
-        CreatedObjectIdDto answer = post(createCustomerDto(jack()))
-                .statusCode(HttpStatus.CREATED.value())
-                .extract()
-                .as(CreatedObjectIdDto.class);
-
-        assertThat(answer).isNotNull();
-        assertThat(answer.getId()).isEqualTo(repository.findAll().size());
-        assertThat(answer.getLocation().getRawPath()).isEqualTo("/customers/1");
-    }
-
-    @Test
     @DisplayName("Save multiple customers")
     void postMultipleCustomers() {
         post(createCustomerDto(jack()));
@@ -93,9 +78,6 @@ class CustomerControllerIntegrationTest {
     @Test
     @DisplayName("Find all customers")
     void findAllCustomers() {
-        CustomerListDto answer = findAllRestAssuredCall();
-        assertThat(answer.getCustomers()).isEmpty();
-
         Customer jack = jack();
         Customer john = john();
         Customer joe = joe();
@@ -111,21 +93,18 @@ class CustomerControllerIntegrationTest {
         post(createCustomerDto(joe));
         post(createCustomerDto(bobby));
 
-        answer = findAllRestAssuredCall();
+        CustomerListDto answer = findAllRestAssuredCall();
         assertThat(answer.getCustomers()).hasSize(repository.findAll().size());
-        assertThat(answer.getCustomers()).containsExactlyInAnyOrder(jackDto, johnDto, joeDto, bobbyDto);
+        assertThat(answer.getCustomers()).contains(jackDto, johnDto, joeDto, bobbyDto);
     }
 
     @Test
     @DisplayName("Find by id")
     void findById() {
-        CustomerListDto answer = findAllRestAssuredCall();
-        assertThat(answer.getCustomers()).isEmpty();
-
-        Customer jack = jack(1L);
-        Customer john = john(2L);
-        Customer joe = joe(3L);
-        Customer bobby = bobby(4L);
+        Customer jack = jack(2L);
+        Customer john = john(3L);
+        Customer joe = joe(4L);
+        Customer bobby = bobby(5L);
 
         CustomerDto jackDto = toDto(jack);
         CustomerDto johnDto = toDto(john);
@@ -152,7 +131,7 @@ class CustomerControllerIntegrationTest {
                 .given()
                 .auth()
                 .preemptive()
-                .basic("admin", "admin")
+                .basic("customer@customer.local", "customer")
                 .when()
                 .port(port)
                 .get(host + "/" + id)
@@ -169,7 +148,7 @@ class CustomerControllerIntegrationTest {
                 .contentType(JSON)
                 .auth()
                 .preemptive()
-                .basic("admin", "admin")
+                .basic("customer@customer.local", "customer")
                 .when()
                 .port(port)
                 .get(host)

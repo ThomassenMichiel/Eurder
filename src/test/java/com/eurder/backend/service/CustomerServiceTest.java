@@ -33,8 +33,6 @@ class CustomerServiceTest {
     private CustomerRepository repository;
     @Mock
     private CustomerMapper mapper;
-    @Mock
-    private UserService userService;
     @InjectMocks
     private CustomerService service;
 
