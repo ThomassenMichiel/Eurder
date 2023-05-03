@@ -1,6 +1,7 @@
 package com.eurder.backend.integration;
 
 import com.eurder.backend.dto.reponse.CreatedOrderDto;
+import com.eurder.backend.dto.reponse.OrderDto;
 import com.eurder.backend.dto.reponse.OrderListDto;
 import com.eurder.backend.repository.OrderRepository;
 import com.eurder.backend.service.CustomerService;
@@ -18,6 +19,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.net.URI;
+import java.util.List;
 
 import static com.eurder.backend.util.ItemUtil.apple;
 import static io.restassured.http.ContentType.JSON;
@@ -75,6 +77,20 @@ class OrderControllerIntegrationTest {
     @Test
     @DisplayName("Reorder a previous order")
     void reorder() {
+        List<OrderDto> orders = RestAssured.given()
+                .contentType(JSON)
+                .auth()
+                .preemptive()
+                .basic("customer@customer.local", "customer")
+                .when()
+                .get("http://localhost:" + port + "/orders")
+                .then()
+                .log().ifError()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .as(OrderListDto.class)
+                .getOrders();
+        Long lastOrderBeforeReorderingId = orders.get(orders.size() - 1).getId();
         String answer = RestAssured.given()
                 .contentType(JSON)
                 .auth()
@@ -87,7 +103,7 @@ class OrderControllerIntegrationTest {
                 .statusCode(HttpStatus.CREATED.value())
                 .extract().asString();
 
-        assertThat(answer).isEqualTo("{\"id\":3,\"location\":\"/orders/3\",\"price\":2.22}");
+        assertThat(answer).isEqualTo(String.format("{\"id\":%d,\"location\":\"/orders/%d\",\"price\":2.22}", ++lastOrderBeforeReorderingId, lastOrderBeforeReorderingId));
     }
 
     @Test
