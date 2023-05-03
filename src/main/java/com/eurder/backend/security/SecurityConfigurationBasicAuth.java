@@ -32,12 +32,12 @@ public class SecurityConfigurationBasicAuth {
                 .csrf().disable()
                 .cors().configurationSource(corsConfigurationSource()).and()
                 .authorizeHttpRequests(req -> req
-                        /*.requestMatchers(HttpMethod.POST, "/customers/**").anonymous()
+                        .requestMatchers(HttpMethod.POST, "/customers/**").anonymous()
                         .requestMatchers(HttpMethod.GET, "/customers").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/orders/**").hasAuthority("USER")
                         .requestMatchers("/items/**").hasAuthority("ADMIN")
-                        .anyRequest().authenticated()*/
-                        .anyRequest().permitAll()
+                        .anyRequest().authenticated()
+//                        .anyRequest().permitAll()
                 )
                 .httpBasic(Customizer.withDefaults());
         http.headers().frameOptions().disable();
