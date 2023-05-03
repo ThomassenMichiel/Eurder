@@ -119,7 +119,7 @@ class ItemControllerIntegrationTest {
     @DisplayName("Order an item, update an item and order the same item again with updated values")
     void orderItem_thenUpdateItem_thenOrderTheUpdateItemAgain() {
         CreateOrderDto createOrderDto = new CreateOrderDto(List.of(new CreateItemGroupDto(1L, 1)));
-        CreatedOrderDto expectedCreatedOrderDto = new CreatedOrderDto(1L, URI.create("/orders/" + 1L), 2.22);
+        CreatedOrderDto expectedCreatedOrderDto = new CreatedOrderDto(2L, URI.create("/orders/" + 2L), 2.22);
 
         CreatedOrderDto createdOrderDto = postOrder(createOrderDto)
                 .statusCode(CREATED.value())
@@ -135,7 +135,7 @@ class ItemControllerIntegrationTest {
                 .statusCode(OK.value());
 
         CreateOrderDto updatedCreateOrderDto = new CreateOrderDto(List.of(new CreateItemGroupDto(1L, 10)));
-        CreatedOrderDto expectedUpdatedCreatedOrderDto = new CreatedOrderDto(2L, URI.create("/orders/" + 2L), item.getPrice().multiply(BigDecimal.valueOf(updatedCreateOrderDto.getItemGroupList().get(0).getAmount())).doubleValue());
+        CreatedOrderDto expectedUpdatedCreatedOrderDto = new CreatedOrderDto(3L, URI.create("/orders/" + 3L), item.getPrice().multiply(BigDecimal.valueOf(updatedCreateOrderDto.getItemGroupList().get(0).getAmount())).doubleValue());
 
         CreatedOrderDto updatedCreatedOrderDto = postOrder(updatedCreateOrderDto)
                 .statusCode(CREATED.value())

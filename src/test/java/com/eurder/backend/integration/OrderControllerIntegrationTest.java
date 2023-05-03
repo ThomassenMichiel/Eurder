@@ -1,17 +1,12 @@
 package com.eurder.backend.integration;
 
 import com.eurder.backend.dto.reponse.CreatedOrderDto;
-import com.eurder.backend.dto.reponse.ItemsToShipDto;
-import com.eurder.backend.dto.reponse.ItemsToShipListDto;
 import com.eurder.backend.dto.reponse.OrderListDto;
-import com.eurder.backend.repository.CustomerRepository;
 import com.eurder.backend.repository.OrderRepository;
 import com.eurder.backend.service.CustomerService;
 import com.eurder.backend.service.ItemService;
-import com.eurder.backend.util.CustomerUtil;
-import com.eurder.backend.util.ItemUtil;
 import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,15 +16,11 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.event.annotation.BeforeTestExecution;
-import org.springframework.test.context.jdbc.Sql;
 
 import java.net.URI;
-import java.util.List;
 
-import static com.eurder.backend.util.CustomerUtil.*;
-import static com.eurder.backend.util.ItemUtil.*;
-import static io.restassured.http.ContentType.*;
+import static com.eurder.backend.util.ItemUtil.apple;
+import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -53,7 +44,6 @@ class OrderControllerIntegrationTest {
     @Test
     @DisplayName("Save order")
     void saveOrder() {
-        assertThat(orderRepository.findAll()).isEmpty();
         String order = """
                 {
                     "itemGroupList": [
@@ -76,16 +66,34 @@ class OrderControllerIntegrationTest {
                 .statusCode(HttpStatus.CREATED.value())
                 .extract().as(CreatedOrderDto.class);
 
-        assertThat(createdOrderDto.getLocation()).isEqualTo(URI.create("/orders/1"));
-        assertThat(createdOrderDto.getId()).isEqualTo(1L);
+        assertThat(createdOrderDto.getLocation()).isEqualTo(URI.create("/orders/2"));
+        assertThat(createdOrderDto.getId()).isEqualTo(2L);
         assertThat(createdOrderDto.getPrice()).isEqualTo(apple().getPrice().doubleValue());
-        assertThat(orderRepository.findAll()).hasSize(1);
+        assertThat(orderRepository.findAll()).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("Reorder a previous order")
+    void reorder() {
+        String answer = RestAssured.given()
+                .contentType(JSON)
+                .auth()
+                .preemptive()
+                .basic("customer@customer.local", "customer")
+                .when()
+                .post("http://localhost:" + port + "/orders/reorder/1")
+                .then()
+                .log().ifError()
+                .statusCode(HttpStatus.CREATED.value())
+                .extract().asString();
+
+        assertThat(answer).isEqualTo("{\"id\":3,\"location\":\"/orders/3\",\"price\":2.22}");
     }
 
     @Test
     @DisplayName("Find all")
     void findAll() {
-        OrderListDto orderListDto = RestAssured.given()
+        String answer = RestAssured.given()
                 .contentType(JSON)
                 .auth()
                 .basic("customer@customer.local", "customer")
@@ -95,14 +103,13 @@ class OrderControllerIntegrationTest {
                 .then()
                 .statusCode(HttpStatus.OK.value())
                 .extract()
-                .as(OrderListDto.class);
+                .asString();
 
-        assertThat(orderListDto.getOrders()).isEmpty();
+        assertThat(answer).isEqualTo("{\"orders\":[{\"id\":1,\"itemGroups\":[{\"itemName\":\"apple\",\"orderedAmount\":1,\"price\":2.22}],\"price\":2.22}],\"totalPrice\":2.22}");
     }
 
     @Test
-    @DisplayName("")
-    @Sql(scripts = "classpath:findAllShippingToday.sql")
+    @DisplayName("Find all shipping today")
     void findAllShippingToday() {
         String answer = RestAssured.given()
                 .contentType(JSON)
@@ -117,6 +124,5 @@ class OrderControllerIntegrationTest {
                 .asString();
 
         assertThat(answer).isEqualTo("{\"items\":[{\"items\":[{\"itemName\":\"apple\",\"orderedAmount\":1,\"price\":2.22}],\"address\":{\"street\":\"cantersteen\",\"number\":\"14\",\"zipcode\":\"1337\",\"city\":\"brussels\"}}]}");
-
     }
 }

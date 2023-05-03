@@ -62,6 +62,7 @@ public class OrderService {
     }
 
     public ItemsToShipListDto findAllItemsToShipToday() {
+        List<ItemGroup> all = itemGroupRepository.findAll();
         List<ItemToShip> listOfItemsToShip = itemGroupRepository.findAllByShippingDateIs(LocalDate.now())
                 .stream().map(itemGroup -> new ItemToShip(List.of(itemGroup), itemGroup.getOrder().getCustomer().getAddress()))
                 .toList();

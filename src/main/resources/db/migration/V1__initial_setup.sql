@@ -57,10 +57,10 @@ create table item_group
 );
 
 
-create sequence order_seq start with 1 increment by 1;
+create sequence orders_seq start with 1 increment by 1;
 create table orders
 (
-    id            bigint default nextval('order_seq') primary key,
+    id            bigint default nextval('orders_seq') primary key,
     customer_id   bigint not null,
     item_group_id bigint,
     constraint customer_id foreign key (customer_id) references customer (id),
@@ -78,17 +78,19 @@ VALUES (1, 'ADMIN'),
 
 
 
-insert into address(street, number, zipcode, city)
-values ('cantersteen', '14', '1337', 'brussels');
+insert into address(id, street, number, zipcode, city)
+values (nextval('address_seq'),'cantersteen', '14', '1337', 'brussels');
 
-insert into customer( first_name, last_name, email, address_id, phone_number, password)
-values ('customer', 'customer', 'customer@customer.local', 1, '123456',
+insert into customer(id, first_name, last_name, email, address_id, phone_number, password)
+values (nextval('customer_seq'),'customer', 'customer', 'customer@customer.local', 1, '123456',
         '$2a$12$RBhGJSErgv30ciB4HjgvvumvkZ6/K2V2X84wxGfSZr3HJkC8JLxqm'); // pw is customer
 insert into customer_roles(customer_id, roles_id)
 VALUES (1, 1),
        (1, 2);
-insert into item(name, description, price, amount, item_urgency)
-values ('apple', 'It''s green', 2.22, 10, 'STOCK_HIGH');
+insert into item(id, name, description, price, amount, item_urgency)
+values (nextval('item_seq'),'apple', 'It''s green', 2.22, 10, 'STOCK_HIGH');
 
 
-
+insert into orders(id, customer_id, item_group_id) VALUES (nextval('orders_seq'), 1, null );
+insert into item_group(id, item_id, price, amount, shipping_date, order_id) VALUES ( nextval('item_group_seq'), 1, 2.22, 1, now(), 1 );
+update orders set item_group_id = 1 where id = 1;
