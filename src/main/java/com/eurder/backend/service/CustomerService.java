@@ -7,31 +7,24 @@ import com.eurder.backend.dto.request.CreateCustomerDto;
 import com.eurder.backend.exception.CustomerNotFoundException;
 import com.eurder.backend.mapper.CustomerMapper;
 import com.eurder.backend.repository.CustomerRepository;
-
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CustomerService implements UserDetailsService {
     private final CustomerRepository repository;
     private final CustomerMapper mapper;
-//    private final UserService userService;
 
     public CustomerService(CustomerRepository repository, CustomerMapper mapper/*, UserService userService*/) {
         this.repository = repository;
         this.mapper = mapper;
-//        this.userService = userService;
     }
 
     public Long save(CreateCustomerDto createCustomerDto) {
         Customer createdCustomer = repository.save(mapper.toDomain(createCustomerDto));
-//        userService.save(createdCustomer);
         return createdCustomer.getId();
     }
 
